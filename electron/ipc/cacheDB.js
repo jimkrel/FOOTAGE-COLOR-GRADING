@@ -90,6 +90,11 @@ export function initDB(customDbPath) {
 
     CREATE INDEX IF NOT EXISTS idx_clip_tags_hash ON clip_tags(file_hash);
     CREATE INDEX IF NOT EXISTS idx_clip_tags_tag ON clip_tags(tag);
+
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    );
   `);
 
   return dbInstance;
@@ -235,4 +240,52 @@ export function getAllCachedClips() {
     ...clip,
     tags: getClipTags(clip.fileHash)
   }));
+}
+
+/**
+ * Save an app setting (e.g. thresholds, active preset).
+ * @param {string} key
+ * @param {any} value
+ */
+export function saveSetting(key, value) {
+  const db = initDB();
+  const valStr = typeof value === 'string' ? value : JSON.stringify(value);
+  db.prepare(`
+    INSERT INTO app_settings (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value
+  `).run(key, valStr);
+  return { success: true };
+}
+
+/**
+ * Get an app setting by key.
+ * @param {string} key
+ * @param {any} [defaultValue]
+ */
+export function getSetting(key, defaultValue = null) {
+  const db = initDB();
+  const row = db.prepare(`SELECT value FROM app_settings WHERE key = ?`).get(key);
+  if (!row) return defaultValue;
+  try {
+    return JSON.parse(row.value);
+  } catch {
+    return row.value;
+  }
+}
+
+/**
+ * Get all app settings as a key-value object.
+ */
+export function getAllSettings() {
+  const db = initDB();
+  const rows = db.prepare(`SELECT key, value FROM app_settings`).all();
+  const result = {};
+  for (const row of rows) {
+    try {
+      result[row.key] = JSON.parse(row.value);
+    } catch {
+      result[row.key] = row.value;
+    }
+  }
+  return result;
 }

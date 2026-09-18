@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Film, AlertTriangle, CheckCircle2, Play, RefreshCw, Zap } from 'lucide-react';
-import { ISSUE_COLORS } from '../hooks/useClipAnalysis.js';
+import { getIssueTheme, getTagTheme } from '../theme/tokens.js';
 
 export default function ClipCard({
   clip,
@@ -148,19 +148,11 @@ export default function ClipCard({
       {clip.tags && clip.tags.length > 0 && (
         <div className="flex flex-wrap items-center gap-1 my-1">
           {clip.tags.map(tag => {
-            let tagStyle = 'bg-slate-800/80 text-slate-400 border-slate-700/60';
-            if (tag === 'clean') tagStyle = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
-            else if (tag === 'overexposed') tagStyle = 'bg-orange-500/15 text-orange-400 border-orange-500/30';
-            else if (tag === 'underexposed') tagStyle = 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30';
-            else if (tag === 'cool-cast') tagStyle = 'bg-sky-500/15 text-sky-400 border-sky-500/30';
-            else if (tag === 'warm-cast') tagStyle = 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30';
-            else if (tag === 'magenta-cast') tagStyle = 'bg-pink-500/15 text-pink-400 border-pink-500/30';
-            else if (tag === 'green-cast') tagStyle = 'bg-lime-500/15 text-lime-400 border-lime-500/30';
-
+            const theme = getTagTheme(tag);
             return (
               <span
                 key={tag}
-                className={`text-[9px] font-mono px-1.5 py-0.2 rounded border ${tagStyle}`}
+                className={`text-[9px] font-mono px-1.5 py-0.2 rounded border ${theme.badgeBg} ${theme.badgeText} ${theme.badgeBorder}`}
               >
                 #{tag}
               </span>
@@ -176,14 +168,14 @@ export default function ClipCard({
             const segDuration = seg.duration || (seg.end - seg.start);
             const total = clip.duration || 1;
             const pct = Math.max(1, (segDuration / total) * 100);
-            const colorDef = ISSUE_COLORS[seg.issueType] || ISSUE_COLORS.normal;
+            const theme = getIssueTheme(seg.issueType);
 
             return (
               <div
                 key={idx}
                 style={{
                   width: `${pct}%`,
-                  backgroundColor: colorDef.bg
+                  backgroundColor: theme.bg
                 }}
                 className="h-full"
                 title={`${seg.label}: ${seg.start}s - ${seg.end}s`}

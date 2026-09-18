@@ -4,7 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { scanFolder } from './ipc/scanFolder.js';
 import { analyzeClip } from './ipc/analyzeClip.js';
 import { generateThumbnail, generateScrubFrames } from './ipc/thumbnail.js';
-import { getAllCachedClips, getAllTagsWithCounts } from './ipc/cacheDB.js';
+import { getAllCachedClips, getAllTagsWithCounts, saveSetting, getSetting, getAllSettings } from './ipc/cacheDB.js';
 import { batchAnalyzer } from './ipc/batchQueue.js';
 import { folderWatcher } from './ipc/folderWatcher.js';
 import { PRESETS, DEFAULT_THRESHOLDS } from '../analysis-engine/thresholdConfig.js';
@@ -180,4 +180,17 @@ ipcMain.handle('config:presets', () => {
     presets: PRESETS,
     defaultThresholds: DEFAULT_THRESHOLDS
   };
+});
+
+// IPC: App persistent settings (thresholds, active preset, preferences)
+ipcMain.handle('settings:get', (_event, key, defaultValue) => {
+  return getSetting(key, defaultValue);
+});
+
+ipcMain.handle('settings:set', (_event, key, value) => {
+  return saveSetting(key, value);
+});
+
+ipcMain.handle('settings:all', () => {
+  return getAllSettings();
 });

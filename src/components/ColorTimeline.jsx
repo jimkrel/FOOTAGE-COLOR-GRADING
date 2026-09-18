@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { ISSUE_COLORS } from '../hooks/useClipAnalysis.js';
+import { getIssueTheme } from '../theme/tokens.js';
+import { EmptyView } from './common/StateView.jsx';
 
 export default function ColorTimeline({
   segments = [],
@@ -13,10 +14,10 @@ export default function ColorTimeline({
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
   const timelineRef = useRef(null);
 
-  if (!duration || duration <= 0) {
+  if (!duration || duration <= 0 || !segments || segments.length === 0) {
     return (
-      <div className="w-full h-24 bg-slate-900/60 border border-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-500">
-        Chưa có dữ liệu timeline (Cần phân tích video trước)
+      <div className="w-full h-20 bg-slate-900/50 border border-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-500">
+        Chưa có dữ liệu timeline (Cần phân tích video để xem phân bố phơi sáng và ám màu)
       </div>
     );
   }
@@ -28,7 +29,7 @@ export default function ColorTimeline({
     const ratio = x / rect.width;
     const hoverTime = ratio * duration;
 
-    // Find corresponding segment
+    // Find corresponding segment at hoverTime
     const found = segments.find(s => hoverTime >= s.start && hoverTime <= s.end);
     setHoverSegment(found || null);
     setHoverPos({ x: e.clientX, y: rect.top - 8 });
@@ -38,11 +39,12 @@ export default function ColorTimeline({
     setHoverSegment(null);
   };
 
+  // Precise click seeking
   const handleTimelineClick = (e) => {
     if (!timelineRef.current || !onSeek) return;
     const rect = timelineRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const seekTime = (x / rect.width) * duration;
+    const seekTime = Number(((x / rect.width) * duration).toFixed(2));
     onSeek(seekTime);
   };
 
@@ -66,7 +68,7 @@ export default function ColorTimeline({
           </span>
           <span className="text-slate-500">({segments.length} đoạn phân đoạn)</span>
         </div>
-        <div className="font-mono text-xs text-cyan-400">
+        <div className="font-mono text-xs text-cyan-400 font-semibold">
           {formatTime(currentTime)} / {formatTime(duration)}
         </div>
       </div>
@@ -77,13 +79,13 @@ export default function ColorTimeline({
         onClick={handleTimelineClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative w-full h-12 bg-slate-950 rounded-md overflow-hidden cursor-pointer border border-slate-800 flex"
+        className="relative w-full h-11 bg-slate-950 rounded-md overflow-hidden cursor-pointer border border-slate-800 flex"
       >
         {/* Segments */}
         {segments.map((seg, idx) => {
           const segDuration = seg.duration || (seg.end - seg.start);
           const widthPercent = (segDuration / duration) * 100;
-          const colorDef = ISSUE_COLORS[seg.issueType] || ISSUE_COLORS.normal;
+          const theme = getIssueTheme(seg.issueType);
           const isCurrentHover = hoverSegment === seg;
           const isSelected = selectedSegment === seg;
 
@@ -92,7 +94,7 @@ export default function ColorTimeline({
               key={idx}
               style={{
                 width: `${widthPercent}%`,
-                backgroundColor: colorDef.bg
+                backgroundColor: theme.bg
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -104,7 +106,7 @@ export default function ColorTimeline({
               } ${isSelected ? 'ring-2 ring-white z-10' : ''}`}
             >
               {/* Segment Label for wide segments */}
-              {widthPercent > 7 && (
+              {widthPercent > 8 && (
                 <span className="absolute left-1.5 top-1 text-[10px] font-medium text-black/75 truncate pointer-events-none drop-shadow-xs">
                   {seg.issueType === 'normal' ? 'Normal' : seg.label.split(' ')[0]}
                 </span>
@@ -125,23 +127,19 @@ export default function ColorTimeline({
       {/* Segment Legend & Breakdown */}
       <div className="flex flex-wrap items-center gap-3 pt-1 text-[11px] text-slate-400 border-t border-slate-800/60">
         <span className="text-slate-500 font-medium">Chú thích:</span>
-        {Object.entries(ISSUE_COLORS).map(([key, item]) => {
-          // Count total seconds of this issue
+        {segments.length > 0 && Array.from(new Set(segments.map(s => s.issueType))).map(issueType => {
+          const theme = getIssueTheme(issueType);
           const totalSec = segments
-            .filter(s => s.issueType === key)
+            .filter(s => s.issueType === issueType)
             .reduce((acc, s) => acc + (s.duration || 0), 0);
 
-          if (totalSec <= 0 && key !== 'normal') return null;
-
           return (
-            <div key={key} className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: item.bg }} />
-              <span className="text-slate-300">{item.label}</span>
-              {totalSec > 0 && (
-                <span className="text-[10px] font-mono text-slate-500">
-                  ({totalSec.toFixed(1)}s)
-                </span>
-              )}
+            <div key={issueType} className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.bg }} />
+              <span className="text-slate-300">{theme.label}</span>
+              <span className="text-[10px] font-mono text-slate-500">
+                ({totalSec.toFixed(1)}s)
+              </span>
             </div>
           );
         })}
@@ -154,7 +152,7 @@ export default function ColorTimeline({
           style={{ left: `${hoverPos.x}px`, top: `${hoverPos.y}px` }}
         >
           <div className="flex items-center justify-between font-semibold border-b border-slate-800 pb-1 mb-1.5">
-            <span className={ISSUE_COLORS[hoverSegment.issueType]?.text || 'text-white'}>
+            <span className={getIssueTheme(hoverSegment.issueType).text}>
               {hoverSegment.label}
             </span>
             <span className="font-mono text-slate-400 text-[10px]">

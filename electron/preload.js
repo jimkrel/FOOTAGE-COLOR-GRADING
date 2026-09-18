@@ -20,6 +20,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Tags list
   getTags: () => ipcRenderer.invoke('tags:list'),
 
+  // App settings persistence (thresholds, presets)
+  getSetting: (key, defaultValue) => ipcRenderer.invoke('settings:get', key, defaultValue),
+  setSetting: (key, value) => ipcRenderer.invoke('settings:set', key, value),
+  getAllSettings: () => ipcRenderer.invoke('settings:all'),
+
   // Single clip progress listener
   onProgress: (callback) => {
     const subscription = (_event, value) => callback(value);

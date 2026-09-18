@@ -1,28 +1,62 @@
-import React from 'react';
-import { X, Check, Sliders, RotateCcw } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Check, Sliders, RotateCcw, AlertCircle } from 'lucide-react';
 import { PRESETS, DEFAULT_THRESHOLDS } from '../../analysis-engine/thresholdConfig.js';
 
 export default function ThresholdSettings({
   isOpen,
   onClose,
-  thresholds,
+  thresholds = DEFAULT_THRESHOLDS,
   onChangeThresholds,
-  activePreset,
+  activePreset = 'standard',
   onSelectPreset,
   onReanalyzeCurrent
 }) {
+  const [validationError, setValidationError] = useState(null);
+
   if (!isOpen) return null;
 
   const handlePresetClick = (key) => {
+    setValidationError(null);
     const preset = PRESETS[key];
     if (preset) {
-      onSelectPreset(key);
-      onChangeThresholds({
-        yOver: preset.yOver,
-        yUnder: preset.yUnder,
-        castThresholdPercent: preset.castThresholdPercent
-      });
+      if (onSelectPreset) onSelectPreset(key);
+      if (onChangeThresholds) {
+        onChangeThresholds({
+          yOver: preset.yOver,
+          yUnder: preset.yUnder,
+          castThresholdPercent: preset.castThresholdPercent
+        });
+      }
     }
+  };
+
+  const handleYOverChange = (val) => {
+    const num = parseInt(val, 10);
+    if (num <= thresholds.yUnder + 15) {
+      setValidationError('Ngưỡng Cháy sáng (Y Over) phải lớn hơn Ngưỡng Thiếu sáng ít nhất 15 đơn vị.');
+      return;
+    }
+    setValidationError(null);
+    if (onSelectPreset) onSelectPreset('custom');
+    if (onChangeThresholds) onChangeThresholds({ ...thresholds, yOver: num });
+  };
+
+  const handleYUnderChange = (val) => {
+    const num = parseInt(val, 10);
+    if (num >= thresholds.yOver - 15) {
+      setValidationError('Ngưỡng Thiếu sáng (Y Under) phải nhỏ hơn Ngưỡng Cháy sáng ít nhất 15 đơn vị.');
+      return;
+    }
+    setValidationError(null);
+    if (onSelectPreset) onSelectPreset('custom');
+    if (onChangeThresholds) onChangeThresholds({ ...thresholds, yUnder: num });
+  };
+
+  const handleCastThresholdChange = (val) => {
+    const num = parseFloat(val);
+    setValidationError(null);
+    if (onSelectPreset) onSelectPreset('custom');
+    if (onChangeThresholds) onChangeThresholds({ ...thresholds, castThresholdPercent: num });
   };
 
   const resetToDefault = () => {
@@ -30,7 +64,7 @@ export default function ThresholdSettings({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
       <div className="bg-[#111726] border border-slate-700/80 rounded-xl w-full max-w-md p-5 shadow-2xl text-slate-200 select-none">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
@@ -45,6 +79,14 @@ export default function ThresholdSettings({
             <X size={16} />
           </button>
         </div>
+
+        {/* Validation Alert */}
+        {validationError && (
+          <div className="mt-3 p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-2 text-xs text-red-400">
+            <AlertCircle size={14} className="shrink-0" />
+            <span>{validationError}</span>
+          </div>
+        )}
 
         {/* Presets Selection */}
         <div className="my-4">
@@ -88,13 +130,10 @@ export default function ThresholdSettings({
               max="245"
               step="1"
               value={thresholds.yOver}
-              onChange={(e) => {
-                onSelectPreset('custom');
-                onChangeThresholds({ ...thresholds, yOver: parseInt(e.target.value, 10) });
-              }}
+              onChange={(e) => handleYOverChange(e.target.value)}
               className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500"
             />
-            <div className="text-[10px] text-slate-500 mt-0.5">Frame có độ sáng Y trung bình lớn hơn ngưỡng này sẽ bị gắn cờ Cháy sáng</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Luma Y trung bình lớn hơn ngưỡng này sẽ được gắn cờ Cháy sáng</div>
           </div>
 
           {/* Underexposed */}
@@ -109,13 +148,10 @@ export default function ThresholdSettings({
               max="70"
               step="1"
               value={thresholds.yUnder}
-              onChange={(e) => {
-                onSelectPreset('custom');
-                onChangeThresholds({ ...thresholds, yUnder: parseInt(e.target.value, 10) });
-              }}
+              onChange={(e) => handleYUnderChange(e.target.value)}
               className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
             />
-            <div className="text-[10px] text-slate-500 mt-0.5">Frame có độ sáng Y trung bình nhỏ hơn ngưỡng này sẽ bị gắn cờ Thiếu sáng</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">Luma Y trung bình nhỏ hơn ngưỡng này sẽ được gắn cờ Thiếu sáng</div>
           </div>
 
           {/* Color Cast */}
@@ -130,10 +166,7 @@ export default function ThresholdSettings({
               max="0.35"
               step="0.01"
               value={thresholds.castThresholdPercent}
-              onChange={(e) => {
-                onSelectPreset('custom');
-                onChangeThresholds({ ...thresholds, castThresholdPercent: parseFloat(e.target.value) });
-              }}
+              onChange={(e) => handleCastThresholdChange(e.target.value)}
               className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
             />
             <div className="text-[10px] text-slate-500 mt-0.5">Mức chênh lệch % giữa các kênh màu RGB để phát hiện ám xanh / ám vàng</div>

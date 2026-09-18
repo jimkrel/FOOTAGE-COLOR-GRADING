@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { generateTagsFromSegments } from './analysis-engine/tagGenerator.js';
-import { initDB, saveClipTags, getClipTags, getAllTagsWithCounts } from './electron/ipc/cacheDB.js';
+import { initDB, saveClipTags, getClipTags, getAllTagsWithCounts, saveSetting, getSetting, getAllSettings } from './electron/ipc/cacheDB.js';
 import { analyzeClip } from './electron/ipc/analyzeClip.js';
 import { batchAnalyzer } from './electron/ipc/batchQueue.js';
 import { folderWatcher } from './electron/ipc/folderWatcher.js';
@@ -46,7 +46,18 @@ if (savedTags.length !== 2 || !savedTags.includes('clean') || !savedTags.include
 
 const allTags = getAllTagsWithCounts();
 console.log('All tags with counts:', allTags);
-console.log('✓ Test 2 Passed: SQLite clip_tags table works!\n');
+
+// Test persistent settings
+saveSetting('activePreset', 'hdr');
+saveSetting('thresholds', { yOver: 210, yUnder: 35, castThresholdPercent: 0.18 });
+const retrievedPreset = getSetting('activePreset');
+const retrievedThresholds = getSetting('thresholds');
+console.log('Retrieved persistent settings:', { preset: retrievedPreset, thresholds: retrievedThresholds });
+if (retrievedPreset !== 'hdr' || retrievedThresholds.yOver !== 210) {
+  throw new Error('SQLite app_settings persistence failed');
+}
+
+console.log('✓ Test 2 Passed: SQLite clip_tags and app_settings tables work!\n');
 
 // 3. Test analyzeClip with Auto-tagging
 console.log('--- TEST 3: analyzeClip integration ---');

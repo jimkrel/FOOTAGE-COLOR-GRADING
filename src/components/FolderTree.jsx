@@ -1,21 +1,22 @@
 import React from 'react';
-import { FolderOpen, RefreshCw, Sparkles, Filter, Sliders, XCircle, Tag, Radio } from 'lucide-react';
+import { FolderOpen, RefreshCw, Sparkles, Filter, Sliders, Tag } from 'lucide-react';
+import ScanProgressBar from './ScanProgressBar.jsx';
 
 export default function FolderTree({
   folderPath,
-  clipsCount,
+  clipsCount = 0,
   onSelectFolder,
   onRefresh,
   onAnalyzeAll,
   onCancelBatch,
   batchProgress,
-  filterIssue,
+  filterIssue = 'all',
   onFilterChange,
-  selectedTag,
+  selectedTag = 'all',
   onSelectTag,
   availableTags = {},
-  isScanning,
-  isAnalyzingAny,
+  isScanning = false,
+  isAnalyzingAny = false,
   onOpenSettings
 }) {
   const isBatchRunning = batchProgress?.isRunning;
@@ -49,7 +50,7 @@ export default function FolderTree({
             </div>
 
             {/* Auto-watch folder active indicator */}
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-medium whitespace-nowrap" title="Chokidar tự động theo dõi thư mục: clip mới sẽ tự phân tích">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-medium whitespace-nowrap" title="Chokidar tự động theo dõi thư mục: clip mới sẽ tự động phân tích">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>Auto-Watch</span>
             </div>
@@ -59,30 +60,11 @@ export default function FolderTree({
 
       {/* Center: Live Batch Progress Bar */}
       {isBatchRunning && (
-        <div className="flex-1 max-w-md mx-2 flex items-center gap-3 bg-slate-900/90 border border-cyan-500/30 px-3 py-1.5 rounded-lg shadow-sm">
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between text-[11px] mb-1 font-medium text-slate-300">
-              <span className="truncate">
-                Đa luồng: <b className="text-cyan-400">{batchProgress.completed}/{batchProgress.total}</b> clip ({batchProgress.percent}%)
-              </span>
-              <span className="text-[10px] font-mono text-cyan-400">
-                {batchProgress.currentFile ? batchProgress.currentFile.split(/[/\\]/).pop() : ''}
-              </span>
-            </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-300"
-                style={{ width: `${batchProgress.percent}%` }}
-              />
-            </div>
-          </div>
-          <button
-            onClick={onCancelBatch}
-            className="p-1 text-slate-400 hover:text-red-400 transition"
-            title="Dừng phân tích hàng loạt"
-          >
-            <XCircle size={15} />
-          </button>
+        <div className="flex-1 max-w-md mx-2">
+          <ScanProgressBar
+            batchProgress={batchProgress}
+            onCancel={onCancelBatch}
+          />
         </div>
       )}
 
