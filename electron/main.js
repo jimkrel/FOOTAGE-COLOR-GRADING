@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, dialog, protocol, net } from 'electron';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { scanFolder } from './ipc/scanFolder.js';
+import { scanFolder, importPaths, SUPPORTED_VIDEO_EXTENSIONS } from './ipc/scanFolder.js';
 import { analyzeClip } from './ipc/analyzeClip.js';
 import { generateThumbnail, generateScrubFrames } from './ipc/thumbnail.js';
 import { getAllCachedClips, getAllTagsWithCounts, saveSetting, getSetting, getAllSettings } from './ipc/cacheDB.js';
@@ -119,6 +119,31 @@ ipcMain.handle('folder:select', async () => {
     return null;
   }
   return result.filePaths[0];
+});
+
+// IPC: Open file selection dialog for individual or multiple video files
+ipcMain.handle('files:select', async () => {
+  if (!mainWindow) return [];
+  const extList = Array.from(SUPPORTED_VIDEO_EXTENSIONS).map(ext => ext.replace('.', ''));
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile', 'multiSelections'],
+    title: 'Chọn file video Footage',
+    filters: [
+      { name: 'Video Files', extensions: extList },
+      { name: 'All Files', extensions: ['*'] }
+    ]
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return [];
+  }
+  return await importPaths(result.filePaths);
+});
+
+// IPC: Import arbitrary paths (e.g. from Drag & Drop)
+ipcMain.handle('files:import', async (_event, targetPaths) => {
+  if (!Array.isArray(targetPaths) || targetPaths.length === 0) return [];
+  return await importPaths(targetPaths);
 });
 
 // IPC: Scan folder and automatically begin watch folder monitoring

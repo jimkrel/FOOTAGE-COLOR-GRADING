@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Activity, BarChart2, Layers, AlertTriangle, CheckCircle2, ChevronRight, Zap } from 'lucide-react';
 import { getIssueTheme } from '../theme/tokens.js';
 import VectorscopeMini from './VectorscopeMini.jsx';
@@ -11,13 +11,18 @@ export default function ColorInspector({
   isPlaying,
   currentTime,
   onAnalyze,
-  isAnalyzing
+  isAnalyzing,
+  style = {},
+  className = ''
 }) {
   const [activeTab, setActiveTab] = useState('scopes'); // 'scopes' | 'metrics'
 
   if (!selectedClip) {
     return (
-      <div className="w-80 h-full bg-[#0d121f] border-l border-[#1c263c] flex flex-col items-center justify-center p-6 text-center text-slate-500 select-none">
+      <div
+        style={style}
+        className={`h-full bg-[#0d121f] border-l border-[#1c263c] flex flex-col items-center justify-center p-6 text-center text-slate-500 select-none ${className}`}
+      >
         <Activity size={32} className="text-slate-600 mb-2 opacity-60" />
         <div className="text-xs font-semibold text-slate-400">Color Inspector</div>
         <p className="text-[11px] text-slate-500 mt-1 max-w-[200px]">
@@ -31,7 +36,10 @@ export default function ColorInspector({
   const stats = selectedClip.stats;
 
   return (
-    <div className="w-80 lg:w-84 h-full bg-[#0d121f] border-l border-[#1c263c] flex flex-col select-none shrink-0 overflow-hidden">
+    <div
+      style={style}
+      className={`h-full bg-[#0d121f] border-l border-[#1c263c] flex flex-col select-none shrink-0 overflow-hidden ${className}`}
+    >
       {/* Inspector Header & Tab switcher */}
       <div className="p-3 border-b border-[#1c263c] bg-[#0f1526]/80 flex items-center justify-between">
         <div className="flex items-center gap-2">

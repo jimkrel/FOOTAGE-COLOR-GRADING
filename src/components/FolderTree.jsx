@@ -1,11 +1,12 @@
 import React from 'react';
-import { FolderOpen, RefreshCw, Sparkles, Filter, Sliders, Tag } from 'lucide-react';
+import { FolderOpen, RefreshCw, Sparkles, Sliders, Film } from 'lucide-react';
 import ScanProgressBar from './ScanProgressBar.jsx';
 
 export default function FolderTree({
   folderPath,
   clipsCount = 0,
   onSelectFolder,
+  onSelectFiles,
   onRefresh,
   onAnalyzeAll,
   onCancelBatch,
@@ -18,9 +19,9 @@ export default function FolderTree({
 
   return (
     <header className="h-13 border-b border-[#1c263c] bg-[#0d121f] px-4 flex items-center justify-between gap-4 select-none shrink-0 z-30">
-      {/* Left: Brand Logo & Folder Selector */}
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="flex items-center gap-2 font-bold text-slate-100 tracking-wide text-xs md:text-sm">
+      {/* Left: Brand Logo & Folder/File Selectors */}
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2 font-bold text-slate-100 tracking-wide text-xs md:text-sm shrink-0">
           <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white text-xs shadow-md shadow-cyan-500/25">
             ▲
           </div>
@@ -29,15 +30,29 @@ export default function FolderTree({
           </span>
         </div>
 
-        <div className="h-4 w-px bg-slate-800 hidden sm:block" />
+        <div className="h-4 w-px bg-slate-800 hidden sm:block shrink-0" />
 
+        {/* Select Folder Button */}
         <button
           onClick={onSelectFolder}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700/60 transition shadow-xs hover:border-cyan-500/50 cursor-pointer active:scale-95"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700/60 transition shadow-xs hover:border-cyan-500/50 cursor-pointer active:scale-95 shrink-0"
+          title="Chọn thư mục chứa video (tự động quét đệ quy các thư mục con)"
         >
-          <FolderOpen size={14} className="text-cyan-400" />
+          <FolderOpen size={13} className="text-cyan-400" />
           <span>{folderPath ? 'Đổi Thư Mục' : 'Chọn Thư Mục'}</span>
         </button>
+
+        {/* Select Files Button */}
+        {onSelectFiles && (
+          <button
+            onClick={onSelectFiles}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-slate-800/60 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700/50 transition hover:border-cyan-500/40 hover:text-white cursor-pointer active:scale-95 shrink-0"
+            title="Chọn trực tiếp một hoặc nhiều file video riêng lẻ"
+          >
+            <Film size={13} className="text-blue-400" />
+            <span>Thêm File</span>
+          </button>
+        )}
 
         {folderPath && (
           <div className="hidden lg:flex items-center gap-2 min-w-0">

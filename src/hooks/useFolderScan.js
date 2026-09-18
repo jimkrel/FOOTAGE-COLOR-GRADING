@@ -50,6 +50,66 @@ export function useFolderScan() {
     }
   }, [isElectron, scanDirectory]);
 
+  // Open native multi-file dialog for selecting individual video files
+  const selectFiles = useCallback(async () => {
+    if (!isElectron) {
+      setScanError('Ứng dụng cần chạy trong Electron để chọn file.');
+      return;
+    }
+
+    try {
+      setIsScanning(true);
+      setScanError(null);
+      const importedClips = await window.electronAPI.selectFiles();
+      if (importedClips && importedClips.length > 0) {
+        setClips(prev => {
+          const existingPaths = new Set(prev.map(c => c.filePath));
+          const newClips = importedClips.filter(c => !existingPaths.has(c.filePath));
+          return [...newClips, ...prev];
+        });
+        if (!folderPath && importedClips[0]) {
+          const parts = importedClips[0].filePath.split(/[/\\]/);
+          parts.pop();
+          setFolderPath(parts.join('/'));
+        }
+      }
+    } catch (err) {
+      console.error('[useFolderScan] Error selecting files:', err);
+      setScanError('Không thể mở file video.');
+    } finally {
+      setIsScanning(false);
+    }
+  }, [isElectron, folderPath]);
+
+  // Import paths from Drag & Drop (supports both folders and video files)
+  const importDroppedPaths = useCallback(async (paths) => {
+    if (!isElectron || !paths || paths.length === 0) return;
+
+    setIsScanning(true);
+    setScanError(null);
+
+    try {
+      const importedClips = await window.electronAPI.importPaths(paths);
+      if (importedClips && importedClips.length > 0) {
+        setClips(prev => {
+          const existingPaths = new Set(prev.map(c => c.filePath));
+          const newClips = importedClips.filter(c => !existingPaths.has(c.filePath));
+          return [...newClips, ...prev];
+        });
+        if (!folderPath && importedClips[0]) {
+          const parts = importedClips[0].filePath.split(/[/\\]/);
+          parts.pop();
+          setFolderPath(parts.join('/'));
+        }
+      }
+    } catch (err) {
+      console.error('[useFolderScan] Error importing dropped paths:', err);
+      setScanError('Không thể nạp các file đã kéo thả.');
+    } finally {
+      setIsScanning(false);
+    }
+  }, [isElectron, folderPath]);
+
   // Reload current folder
   const refreshFolder = useCallback(async () => {
     if (folderPath) {
@@ -91,19 +151,22 @@ export function useFolderScan() {
     });
 
     return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
   }, [isElectron]);
 
   return {
     folderPath,
+    setFolderPath,
     clips,
     setClips,
-    updateClip,
     isScanning,
     scanError,
     selectFolder,
+    selectFiles,
+    importDroppedPaths,
+    scanDirectory,
     refreshFolder,
-    scanDirectory
+    updateClip
   };
 }

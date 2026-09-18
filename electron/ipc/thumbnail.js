@@ -32,7 +32,7 @@ export function generateThumbnail(videoPath, timestamp = 1, fileHash = '') {
       '-ss', timestamp.toString(),
       '-i', videoPath,
       '-vframes', '1',
-      '-vf', 'scale=320:-1',
+      '-vf', 'scale=320:-2',
       '-q:v', '3',
       '-y',
       outPath
@@ -49,7 +49,7 @@ export function generateThumbnail(videoPath, timestamp = 1, fileHash = '') {
           '-ss', '0',
           '-i', videoPath,
           '-vframes', '1',
-          '-vf', 'scale=320:-1',
+          '-vf', 'scale=320:-2',
           '-q:v', '3',
           '-y',
           outPath

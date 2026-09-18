@@ -7,6 +7,7 @@
   "scripts": {
     "test": "node test-analysis.js",
     "test:features": "node test-extended-features.js",
+    "test:recognition": "node test-video-recognition.js",
     "dev": "vite",
     "build": "vite build",
     "start": "vite build && electron .",

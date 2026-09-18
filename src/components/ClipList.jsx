@@ -19,7 +19,9 @@ export default function ClipList({
   onFilterChange,
   isScanning = false,
   scanError = null,
-  onRefresh
+  onRefresh,
+  style = {},
+  className = ''
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState('card'); // 'card' | 'list'
@@ -46,7 +48,10 @@ export default function ClipList({
   }, [clips, searchQuery, sortBy]);
 
   return (
-    <div className="w-80 lg:w-88 h-full flex flex-col bg-[#0d121f] border-r border-[#1c263c] shrink-0 select-none">
+    <div
+      style={style}
+      className={`h-full flex flex-col bg-[#0d121f] border-r border-[#1c263c] shrink-0 select-none ${className}`}
+    >
       {/* Top Header Section */}
       <div className="p-3 border-b border-[#1c263c] bg-[#0f1526]/80 flex flex-col gap-2.5">
         <div className="flex items-center justify-between">

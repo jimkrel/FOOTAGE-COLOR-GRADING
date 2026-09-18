@@ -4,7 +4,7 @@ import fs from 'fs';
 import { computeQuickHash, getCachedAnalysis } from './cacheDB.js';
 import { batchAnalyzer } from './batchQueue.js';
 
-const VIDEO_EXTENSIONS = new Set(['.mp4', '.mov', '.mkv', '.webm', '.avi', '.m4v']);
+import { isVideoFile } from './scanFolder.js';
 
 class FolderWatcherService {
   constructor() {
@@ -62,8 +62,7 @@ class FolderWatcherService {
   }
 
   _isVideoFile(filePath) {
-    const ext = path.extname(filePath).toLowerCase();
-    return VIDEO_EXTENSIONS.has(ext);
+    return isVideoFile(filePath);
   }
 
   async _handleFileAdd(filePath) {
