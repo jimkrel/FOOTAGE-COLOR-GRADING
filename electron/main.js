@@ -39,8 +39,10 @@ function createWindow() {
     height: 900,
     minWidth: 1024,
     minHeight: 650,
-    backgroundColor: '#0f172a',
-    title: 'Footage Color Analyzer',
+    center: true,
+    show: true,
+    backgroundColor: '#080b12',
+    title: 'Footage Color Studio',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -49,11 +51,26 @@ function createWindow() {
     }
   });
 
+  mainWindow.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+    console.log(`[Renderer Console] ${message} (${sourceId}:${line})`);
+  });
+
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+    console.error(`[did-fail-load] ${errorDescription} (${errorCode}) at ${validatedURL}`);
+  });
+
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    mainWindow.focus();
+    mainWindow.setAlwaysOnTop(true);
+    mainWindow.setAlwaysOnTop(false);
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
