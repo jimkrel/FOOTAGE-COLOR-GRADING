@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderOpen, RefreshCw, Sparkles, Filter, Sliders, PlayCircle } from 'lucide-react';
+import { FolderOpen, RefreshCw, Sparkles, Filter, Sliders, XCircle, Tag, Radio } from 'lucide-react';
 
 export default function FolderTree({
   folderPath,
@@ -7,12 +7,20 @@ export default function FolderTree({
   onSelectFolder,
   onRefresh,
   onAnalyzeAll,
+  onCancelBatch,
+  batchProgress,
   filterIssue,
   onFilterChange,
+  selectedTag,
+  onSelectTag,
+  availableTags = {},
   isScanning,
   isAnalyzingAny,
   onOpenSettings
 }) {
+  const isBatchRunning = batchProgress?.isRunning;
+  const tagKeys = Object.keys(availableTags);
+
   return (
     <header className="h-14 border-b border-slate-800/80 bg-[#0f1523] px-4 flex items-center justify-between gap-4 select-none shrink-0">
       {/* Left: Brand & Folder selector */}
@@ -35,15 +43,69 @@ export default function FolderTree({
         </button>
 
         {folderPath && (
-          <div className="text-xs text-slate-400 truncate max-w-md bg-slate-900/60 px-2.5 py-1 rounded border border-slate-800" title={folderPath}>
-            {folderPath}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="text-xs text-slate-400 truncate max-w-xs bg-slate-900/60 px-2.5 py-1 rounded border border-slate-800" title={folderPath}>
+              {folderPath}
+            </div>
+
+            {/* Auto-watch folder active indicator */}
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-medium whitespace-nowrap" title="Chokidar tự động theo dõi thư mục: clip mới sẽ tự phân tích">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Auto-Watch</span>
+            </div>
           </div>
         )}
       </div>
 
+      {/* Center: Live Batch Progress Bar */}
+      {isBatchRunning && (
+        <div className="flex-1 max-w-md mx-2 flex items-center gap-3 bg-slate-900/90 border border-cyan-500/30 px-3 py-1.5 rounded-lg shadow-sm">
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between text-[11px] mb-1 font-medium text-slate-300">
+              <span className="truncate">
+                Đa luồng: <b className="text-cyan-400">{batchProgress.completed}/{batchProgress.total}</b> clip ({batchProgress.percent}%)
+              </span>
+              <span className="text-[10px] font-mono text-cyan-400">
+                {batchProgress.currentFile ? batchProgress.currentFile.split(/[/\\]/).pop() : ''}
+              </span>
+            </div>
+            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-300"
+                style={{ width: `${batchProgress.percent}%` }}
+              />
+            </div>
+          </div>
+          <button
+            onClick={onCancelBatch}
+            className="p-1 text-slate-400 hover:text-red-400 transition"
+            title="Dừng phân tích hàng loạt"
+          >
+            <XCircle size={15} />
+          </button>
+        </div>
+      )}
+
       {/* Right: Actions, Filters & Settings */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Filter */}
+        {/* Tag Filter Dropdown */}
+        <div className="flex items-center gap-1.5 bg-slate-900/80 px-2 py-1 rounded border border-slate-800 text-xs text-slate-300">
+          <Tag size={13} className="text-cyan-400" />
+          <select
+            value={selectedTag}
+            onChange={(e) => onSelectTag(e.target.value)}
+            className="bg-transparent border-none text-xs text-slate-200 focus:outline-none cursor-pointer pr-1"
+          >
+            <option value="all" className="bg-slate-900 text-slate-200">Tag: Tất cả</option>
+            {tagKeys.map(tag => (
+              <option key={tag} value={tag} className="bg-slate-900 text-slate-200">
+                #{tag} ({availableTags[tag]})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Issue Filter Dropdown */}
         <div className="flex items-center gap-1.5 bg-slate-900/80 px-2 py-1 rounded border border-slate-800 text-xs text-slate-300">
           <Filter size={13} className="text-slate-400" />
           <select
@@ -51,11 +113,11 @@ export default function FolderTree({
             onChange={(e) => onFilterChange(e.target.value)}
             className="bg-transparent border-none text-xs text-slate-200 focus:outline-none cursor-pointer pr-1"
           >
-            <option value="all" className="bg-slate-900 text-slate-200">Tất cả ({clipsCount})</option>
-            <option value="overexposed" className="bg-slate-900 text-orange-400">Cháy sáng (Overexposed)</option>
-            <option value="underexposed" className="bg-slate-900 text-indigo-400">Thiếu sáng (Underexposed)</option>
-            <option value="cool_cast" className="bg-slate-900 text-sky-400">Ám xanh (Cool Cast)</option>
-            <option value="warm_cast" className="bg-slate-900 text-yellow-400">Ám vàng (Warm Cast)</option>
+            <option value="all" className="bg-slate-900 text-slate-200">Lỗi: Tất cả ({clipsCount})</option>
+            <option value="overexposed" className="bg-slate-900 text-orange-400">Cháy sáng (Over)</option>
+            <option value="underexposed" className="bg-slate-900 text-indigo-400">Thiếu sáng (Under)</option>
+            <option value="cool_cast" className="bg-slate-900 text-sky-400">Ám xanh (Cool)</option>
+            <option value="warm_cast" className="bg-slate-900 text-yellow-400">Ám vàng (Warm)</option>
             <option value="unanalyzed" className="bg-slate-900 text-slate-400">Chưa phân tích</option>
           </select>
         </div>
@@ -64,23 +126,24 @@ export default function FolderTree({
         {folderPath && (
           <button
             onClick={onRefresh}
-            disabled={isScanning}
-            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition border border-transparent hover:border-slate-700"
+            disabled={isScanning || isBatchRunning}
+            className="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition border border-transparent hover:border-slate-700 disabled:opacity-50"
             title="Quét lại thư mục"
           >
             <RefreshCw size={15} className={isScanning ? 'animate-spin text-cyan-400' : ''} />
           </button>
         )}
 
-        {/* Batch Analyze */}
-        {folderPath && clipsCount > 0 && (
+        {/* Batch Analyze Button */}
+        {folderPath && clipsCount > 0 && !isBatchRunning && (
           <button
             onClick={onAnalyzeAll}
             disabled={isAnalyzingAny}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-xs font-medium shadow-md shadow-cyan-500/20 transition active:scale-95 disabled:opacity-50"
+            title="Phân tích đa luồng song song các clip chưa phân tích"
           >
             <Sparkles size={14} />
-            <span>Phân Tích Tất Cả</span>
+            <span>Phân Tích Hàng Loạt</span>
           </button>
         )}
 

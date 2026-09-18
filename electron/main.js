@@ -4,12 +4,20 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { scanFolder } from './ipc/scanFolder.js';
 import { analyzeClip } from './ipc/analyzeClip.js';
 import { generateThumbnail, generateScrubFrames } from './ipc/thumbnail.js';
-import { getAllCachedClips } from './ipc/cacheDB.js';
+import { getAllCachedClips, getAllTagsWithCounts } from './ipc/cacheDB.js';
+import { batchAnalyzer } from './ipc/batchQueue.js';
+import { folderWatcher } from './ipc/folderWatcher.js';
 import { PRESETS, DEFAULT_THRESHOLDS } from '../analysis-engine/thresholdConfig.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let mainWindow = null;
+
+const sendToRenderer = (channel, data) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send(channel, data);
+  }
+};
 
 // Register custom protocol 'media' to stream local files safely
 protocol.registerSchemesAsPrivileged([
@@ -70,9 +78,16 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  folderWatcher.stop();
+  batchAnalyzer.cancel();
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+app.on('before-quit', () => {
+  folderWatcher.stop();
+  batchAnalyzer.cancel();
 });
 
 // IPC: Open folder selection dialog
@@ -89,21 +104,43 @@ ipcMain.handle('folder:select', async () => {
   return result.filePaths[0];
 });
 
-// IPC: Scan folder
+// IPC: Scan folder and automatically begin watch folder monitoring
 ipcMain.handle('folder:scan', async (_event, dirPath, options) => {
-  return await scanFolder(dirPath, options);
+  const clips = await scanFolder(dirPath, options);
+  // Auto-start chokidar folder watcher
+  folderWatcher.watch(dirPath, { eventSender: sendToRenderer });
+  return clips;
 });
 
-// IPC: Analyze clip
+// IPC: Analyze single clip
 ipcMain.handle('clip:analyze', async (event, filePath, options = {}) => {
   return await analyzeClip(filePath, {
     ...options,
-    eventSender: (channel, data) => {
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(channel, data);
-      }
-    }
+    eventSender: sendToRenderer
   });
+});
+
+// IPC: Batch analyze with worker pool queue & concurrency limits
+ipcMain.handle('batch:analyze', async (_event, filePaths, options = {}) => {
+  return await batchAnalyzer.startBatch(filePaths, options, sendToRenderer);
+});
+
+// IPC: Cancel ongoing batch analysis
+ipcMain.handle('batch:cancel', () => {
+  batchAnalyzer.cancel();
+  return true;
+});
+
+// IPC: Watch folder manually
+ipcMain.handle('folder:watch', (_event, dirPath, options = {}) => {
+  folderWatcher.watch(dirPath, { ...options, eventSender: sendToRenderer });
+  return true;
+});
+
+// IPC: Unwatch folder
+ipcMain.handle('folder:unwatch', () => {
+  folderWatcher.stop();
+  return true;
 });
 
 // IPC: Generate thumbnail
@@ -130,6 +167,11 @@ ipcMain.handle('clip:scrub', async (_event, videoPath, duration, fileHash) => {
 // IPC: Cached clips
 ipcMain.handle('cache:list', () => {
   return getAllCachedClips();
+});
+
+// IPC: Get distinct tags with counts across library
+ipcMain.handle('tags:list', () => {
+  return getAllTagsWithCounts();
 });
 
 // IPC: Threshold config & presets

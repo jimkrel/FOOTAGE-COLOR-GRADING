@@ -81,6 +81,15 @@ export function initDB(customDbPath) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_segments_clipId ON segments(clipId);
+
+    CREATE TABLE IF NOT EXISTS clip_tags (
+      file_hash TEXT NOT NULL,
+      tag TEXT NOT NULL,
+      PRIMARY KEY (file_hash, tag)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_clip_tags_hash ON clip_tags(file_hash);
+    CREATE INDEX IF NOT EXISTS idx_clip_tags_tag ON clip_tags(tag);
   `);
 
   return dbInstance;
@@ -101,6 +110,8 @@ export function getCachedAnalysis(fileHash) {
     FROM segments WHERE clipId = ? ORDER BY start ASC
   `).all(clip.id);
 
+  const tags = getClipTags(fileHash);
+
   return {
     id: clip.id,
     filePath: clip.filePath,
@@ -111,44 +122,82 @@ export function getCachedAnalysis(fileHash) {
     stats: JSON.parse(clip.statsJson || '{}'),
     analyzedAt: clip.analyzedAt,
     segments,
+    tags,
     isCached: true
   };
 }
 
 /**
+ * Save tags for a clip into clip_tags table.
+ * @param {string} fileHash
+ * @param {Array<string>} tags
+ */
+export function saveClipTags(fileHash, tags = []) {
+  const db = initDB();
+  const deleteOld = db.prepare(`DELETE FROM clip_tags WHERE file_hash = ?`);
+  const insertTag = db.prepare(`INSERT OR IGNORE INTO clip_tags (file_hash, tag) VALUES (?, ?)`);
+
+  const tx = db.transaction(() => {
+    deleteOld.run(fileHash);
+    for (const tag of tags) {
+      if (typeof tag === 'string' && tag.trim()) {
+        insertTag.run(fileHash, tag.trim().toLowerCase());
+      }
+    }
+  });
+
+  tx();
+}
+
+/**
+ * Retrieve tags for a clip by its file_hash.
+ * @param {string} fileHash
+ * @returns {Array<string>}
+ */
+export function getClipTags(fileHash) {
+  const db = initDB();
+  const rows = db.prepare(`SELECT tag FROM clip_tags WHERE file_hash = ? ORDER BY tag ASC`).all(fileHash);
+  return rows.map(r => r.tag);
+}
+
+/**
+ * Retrieve distinct tags across the entire library with usage count.
+ * @returns {Array<{ tag: string, count: number }>}
+ */
+export function getAllTagsWithCounts() {
+  const db = initDB();
+  return db.prepare(`SELECT tag, count(*) as count FROM clip_tags GROUP BY tag ORDER BY count DESC, tag ASC`).all();
+}
+
+/**
  * Save analysis results into the SQLite cache.
- * @param {Object} data - { filePath, fileHash, duration, sampleCount, stats, segments }
+ * @param {Object} data - { filePath, fileHash, duration, sampleCount, stats, segments, tags }
  */
 export function saveAnalysis(data) {
   const db = initDB();
-  const { filePath, fileHash, duration, sampleCount, stats, segments } = data;
+  const { filePath, fileHash, duration, sampleCount, stats, segments, tags } = data;
 
   const statsJson = JSON.stringify(stats || {});
   const fileName = path.basename(filePath);
   const clipId = fileHash;
   const analyzedAt = Date.now();
 
-  const insertOrReplaceClip = db.prepare(`
+  const deleteOldSegments = db.prepare(`DELETE FROM segments WHERE clipId = ?`);
+  const deleteOldClip = db.prepare(`DELETE FROM clips WHERE filePath = ? OR id = ?`);
+  const insertClip = db.prepare(`
     INSERT INTO clips (id, filePath, fileName, fileHash, duration, sampleCount, statsJson, analyzedAt)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(filePath) DO UPDATE SET
-      fileHash = excluded.fileHash,
-      fileName = excluded.fileName,
-      duration = excluded.duration,
-      sampleCount = excluded.sampleCount,
-      statsJson = excluded.statsJson,
-      analyzedAt = excluded.analyzedAt
   `);
 
-  const deleteOldSegments = db.prepare(`DELETE FROM segments WHERE clipId = ?`);
   const insertSegment = db.prepare(`
     INSERT INTO segments (clipId, start, end, duration, issueType, label, severity, avgY, avgR, avgG, avgB)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const transaction = db.transaction(() => {
-    insertOrReplaceClip.run(clipId, filePath, fileName, fileHash, duration, sampleCount, statsJson, analyzedAt);
     deleteOldSegments.run(clipId);
+    deleteOldClip.run(filePath, clipId);
+    insertClip.run(clipId, filePath, fileName, fileHash, duration, sampleCount, statsJson, analyzedAt);
 
     for (const seg of segments) {
       insertSegment.run(
@@ -169,6 +218,10 @@ export function saveAnalysis(data) {
 
   transaction();
 
+  if (Array.isArray(tags)) {
+    saveClipTags(fileHash, tags);
+  }
+
   return { clipId, savedAt: analyzedAt };
 }
 
@@ -177,5 +230,9 @@ export function saveAnalysis(data) {
  */
 export function getAllCachedClips() {
   const db = initDB();
-  return db.prepare(`SELECT id, filePath, fileName, fileHash, duration, analyzedAt FROM clips ORDER BY analyzedAt DESC`).all();
+  const clips = db.prepare(`SELECT id, filePath, fileName, fileHash, duration, analyzedAt FROM clips ORDER BY analyzedAt DESC`).all();
+  return clips.map(clip => ({
+    ...clip,
+    tags: getClipTags(clip.fileHash)
+  }));
 }

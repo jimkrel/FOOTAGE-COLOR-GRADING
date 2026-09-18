@@ -17,8 +17,12 @@ export default function App() {
     isScanning,
     analyzingClipPath,
     progressMap,
+    batchProgress,
     filterIssue,
     setFilterIssue,
+    selectedTag,
+    setSelectedTag,
+    availableTags,
     thresholds,
     setThresholds,
     activePreset,
@@ -26,7 +30,8 @@ export default function App() {
     handleSelectFolder,
     handleRefreshFolder,
     handleAnalyzeClip,
-    handleAnalyzeAll
+    handleAnalyzeAll,
+    handleCancelBatch
   } = useClipAnalysis();
 
   const [currentTime, setCurrentTime] = useState(0);
@@ -50,10 +55,15 @@ export default function App() {
         onSelectFolder={handleSelectFolder}
         onRefresh={handleRefreshFolder}
         onAnalyzeAll={handleAnalyzeAll}
+        onCancelBatch={handleCancelBatch}
+        batchProgress={batchProgress}
         filterIssue={filterIssue}
         onFilterChange={setFilterIssue}
+        selectedTag={selectedTag}
+        onSelectTag={setSelectedTag}
+        availableTags={availableTags}
         isScanning={isScanning}
-        isAnalyzingAny={!!analyzingClipPath}
+        isAnalyzingAny={!!analyzingClipPath || batchProgress.isRunning}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
@@ -72,6 +82,9 @@ export default function App() {
           onAnalyze={(clip) => handleAnalyzeClip(clip, true)}
           analyzingClipPath={analyzingClipPath}
           progressMap={progressMap}
+          selectedTag={selectedTag}
+          onSelectTag={setSelectedTag}
+          availableTags={availableTags}
         />
 
         {/* Right: Player & Timeline */}

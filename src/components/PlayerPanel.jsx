@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize, Zap } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Maximize, Zap, Activity } from 'lucide-react';
 import { ISSUE_COLORS } from '../hooks/useClipAnalysis.js';
+import VectorscopeMini from './VectorscopeMini.jsx';
 
 export default function PlayerPanel({
   selectedClip,
@@ -12,6 +13,7 @@ export default function PlayerPanel({
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [showVectorscope, setShowVectorscope] = useState(true);
   const containerRef = useRef(null);
 
   const videoSrc = selectedClip
@@ -75,16 +77,32 @@ export default function PlayerPanel({
           )}
         </div>
 
-        {selectedClip && !selectedClip.isAnalyzed && (
+        <div className="flex items-center gap-2">
+          {/* Vectorscope Toggle Button */}
           <button
-            onClick={() => onAnalyze(selectedClip)}
-            disabled={isAnalyzing}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-medium transition shadow-xs"
+            onClick={() => setShowVectorscope(prev => !prev)}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded text-[11px] font-medium transition border ${
+              showVectorscope
+                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-xs'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-400 border-slate-700'
+            }`}
+            title="Bật/Tắt Vectorscope Mini"
           >
-            <Zap size={12} />
-            <span>Phân tích ngay</span>
+            <Activity size={12} className={showVectorscope ? 'text-cyan-400' : 'text-slate-400'} />
+            <span>Vectorscope</span>
           </button>
-        )}
+
+          {selectedClip && !selectedClip.isAnalyzed && (
+            <button
+              onClick={() => onAnalyze(selectedClip)}
+              disabled={isAnalyzing}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-medium transition shadow-xs"
+            >
+              <Zap size={12} />
+              <span>Phân tích ngay</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Video Viewport */}
@@ -110,7 +128,7 @@ export default function PlayerPanel({
 
         {/* Current Segment Live Overlay HUD */}
         {activeSegment && activeSegment.issueType !== 'normal' && (
-          <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 px-3 py-2 rounded-lg text-xs pointer-events-none shadow-lg">
+          <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 px-3 py-2 rounded-lg text-xs pointer-events-none shadow-lg z-10">
             <div className="flex items-center gap-2 mb-1">
               <span className={`font-semibold ${ISSUE_COLORS[activeSegment.issueType]?.text}`}>
                 {activeSegment.label}
@@ -125,6 +143,18 @@ export default function PlayerPanel({
               <span>G: <b className="text-green-400">{activeSegment.avgG}</b></span>
               <span>B: <b className="text-blue-400">{activeSegment.avgB}</b></span>
             </div>
+          </div>
+        )}
+
+        {/* Vectorscope Mini Live Overlay */}
+        {showVectorscope && videoSrc && (
+          <div className="absolute top-4 right-4 z-10 transition-all duration-200">
+            <VectorscopeMini
+              videoRef={videoRef}
+              activeSegment={activeSegment}
+              isPlaying={isPlaying}
+              currentTime={currentTime}
+            />
           </div>
         )}
       </div>

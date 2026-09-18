@@ -8,13 +8,18 @@ export default function ClipList({
   onSelectClip,
   onAnalyzeClip,
   analyzingClipPath,
-  progressMap
+  progressMap,
+  selectedTag = 'all',
+  onSelectTag,
+  availableTags = {}
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const displayClips = clips.filter(clip =>
     clip.fileName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const tagKeys = Object.keys(availableTags);
 
   return (
     <div className="w-80 md:w-88 h-full flex flex-col bg-[#0d121f] border-r border-slate-800/80 shrink-0 select-none">
@@ -30,6 +35,36 @@ export default function ClipList({
             className="w-full pl-8 pr-3 py-1.5 bg-slate-900/90 border border-slate-800 focus:border-cyan-500/70 rounded-md text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition"
           />
         </div>
+
+        {/* Tag quick filter chips */}
+        {tagKeys.length > 0 && onSelectTag && (
+          <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto pb-1 no-scrollbar">
+            <button
+              onClick={() => onSelectTag('all')}
+              className={`px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition border ${
+                selectedTag === 'all'
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/50'
+                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border-slate-800'
+              }`}
+            >
+              Tất cả
+            </button>
+            {tagKeys.map(tag => (
+              <button
+                key={tag}
+                onClick={() => onSelectTag(selectedTag === tag ? 'all' : tag)}
+                className={`px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap transition border ${
+                  selectedTag === tag
+                    ? 'bg-cyan-500/25 text-cyan-200 border-cyan-400 shadow-xs'
+                    : 'bg-slate-900 text-slate-400 hover:text-slate-200 border-slate-800'
+                }`}
+              >
+                #{tag} <span className="opacity-60 text-[9px]">({availableTags[tag]})</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex justify-between items-center mt-2 px-1 text-[11px] text-slate-400">
           <span>{displayClips.length} video</span>
           <span>

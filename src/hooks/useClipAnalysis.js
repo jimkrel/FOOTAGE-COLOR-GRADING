@@ -19,6 +19,17 @@ export function useClipAnalysis() {
   const [analyzingClipPath, setAnalyzingClipPath] = useState(null);
   const [progressMap, setProgressMap] = useState({});
   const [filterIssue, setFilterIssue] = useState('all');
+  const [selectedTag, setSelectedTag] = useState('all');
+
+  // Batch progress state for multi-threaded queue
+  const [batchProgress, setBatchProgress] = useState({
+    isRunning: false,
+    completed: 0,
+    total: 0,
+    percent: 0,
+    currentFile: null,
+    status: 'idle'
+  });
 
   // Thresholds state
   const [thresholds, setThresholds] = useState({
@@ -30,17 +41,91 @@ export function useClipAnalysis() {
 
   const isElectron = typeof window !== 'undefined' && !!window.electronAPI;
 
-  // Listen to IPC analysis progress events
+  // Listen to single-clip IPC progress events
   useEffect(() => {
     if (!isElectron) return;
-    const unsubscribe = window.electronAPI.onProgress((data) => {
+    const unsubProgress = window.electronAPI.onProgress((data) => {
       setProgressMap(prev => ({
         ...prev,
         [data.filePath]: data.percent
       }));
     });
+
+    // Listen to batch queue overall progress
+    const unsubBatch = window.electronAPI.onBatchProgress((data) => {
+      setBatchProgress({
+        isRunning: data.status === 'running' || data.status === 'draining',
+        completed: data.completed,
+        total: data.total,
+        percent: data.percent,
+        currentFile: data.currentFile,
+        status: data.status
+      });
+
+      if (data.status === 'completed' || data.status === 'cancelled') {
+        setTimeout(() => {
+          setBatchProgress(prev => ({ ...prev, isRunning: false, currentFile: null }));
+        }, 1500);
+      }
+    });
+
+    // Listen to individual clip completion inside batch queue for instant UI updates
+    const unsubClipDone = window.electronAPI.onBatchClipDone((data) => {
+      const { filePath, result } = data;
+      setClips(prev => prev.map(c => {
+        if (c.filePath === filePath) {
+          return {
+            ...c,
+            isAnalyzed: true,
+            duration: result.duration,
+            stats: result.stats,
+            segments: result.segments,
+            tags: result.tags || []
+          };
+        }
+        return c;
+      }));
+
+      setSelectedClip(prev => {
+        if (prev && prev.filePath === filePath) {
+          return {
+            ...prev,
+            isAnalyzed: true,
+            duration: result.duration,
+            stats: result.stats,
+            segments: result.segments,
+            tags: result.tags || []
+          };
+        }
+        return prev;
+      });
+    });
+
+    // Listen to automatic folder watcher events (file added, removed, changed)
+    const unsubWatcher = window.electronAPI.onFolderWatchEvent((event) => {
+      if (event.type === 'add' && event.clip) {
+        setClips(prev => {
+          if (prev.some(c => c.filePath === event.clip.filePath)) return prev;
+          return [event.clip, ...prev];
+        });
+      } else if (event.type === 'unlink' && event.filePath) {
+        setClips(prev => prev.filter(c => c.filePath !== event.filePath));
+        setSelectedClip(prev => prev?.filePath === event.filePath ? null : prev);
+      } else if (event.type === 'change' && event.filePath) {
+        setClips(prev => prev.map(c => {
+          if (c.filePath === event.filePath) {
+            return { ...c, fileSize: event.fileSize, isAnalyzed: false };
+          }
+          return c;
+        }));
+      }
+    });
+
     return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
+      if (typeof unsubProgress === 'function') unsubProgress();
+      if (typeof unsubBatch === 'function') unsubBatch();
+      if (typeof unsubClipDone === 'function') unsubClipDone();
+      if (typeof unsubWatcher === 'function') unsubWatcher();
     };
   }, [isElectron]);
 
@@ -98,7 +183,7 @@ export function useClipAnalysis() {
         thresholds
       });
 
-      // Update clips list with analysis result
+      // Update clips list with analysis result & auto-tags
       setClips(prev => prev.map(c => {
         if (c.filePath === clip.filePath) {
           return {
@@ -106,7 +191,8 @@ export function useClipAnalysis() {
             isAnalyzed: true,
             duration: result.duration,
             stats: result.stats,
-            segments: result.segments
+            segments: result.segments,
+            tags: result.tags || []
           };
         }
         return c;
@@ -119,7 +205,8 @@ export function useClipAnalysis() {
           isAnalyzed: true,
           duration: result.duration,
           stats: result.stats,
-          segments: result.segments
+          segments: result.segments,
+          tags: result.tags || []
         }));
       }
     } catch (err) {
@@ -130,16 +217,45 @@ export function useClipAnalysis() {
     }
   }, [isElectron, thresholds, selectedClip]);
 
-  // Analyze all unanalyzed clips sequentially
+  // Multi-threaded batch analysis of all unanalyzed clips
   const handleAnalyzeAll = useCallback(async () => {
+    if (!isElectron) return;
     const unanalyzed = clips.filter(c => !c.isAnalyzed);
-    for (const clip of unanalyzed) {
-      await handleAnalyzeClip(clip);
-    }
-  }, [clips, handleAnalyzeClip]);
+    if (unanalyzed.length === 0) return;
 
-  // Filtered clips list
+    const filePaths = unanalyzed.map(c => c.filePath);
+    await window.electronAPI.batchAnalyze(filePaths, { thresholds });
+  }, [isElectron, clips, thresholds]);
+
+  // Cancel multi-threaded batch analysis
+  const handleCancelBatch = useCallback(async () => {
+    if (!isElectron) return;
+    await window.electronAPI.cancelBatch();
+  }, [isElectron]);
+
+  // Collect available tags and usage counts from analyzed clips
+  const availableTags = useCallback(() => {
+    const counts = {};
+    for (const clip of clips) {
+      if (clip.tags && Array.isArray(clip.tags)) {
+        for (const tag of clip.tags) {
+          counts[tag] = (counts[tag] || 0) + 1;
+        }
+      }
+    }
+    return counts;
+  }, [clips])();
+
+  // Filtered clips list applying both issue category & tag filters
   const filteredClips = clips.filter(clip => {
+    // 1. Tag filter
+    if (selectedTag !== 'all') {
+      if (!clip.tags || !clip.tags.includes(selectedTag)) {
+        return false;
+      }
+    }
+
+    // 2. Issue type filter
     if (filterIssue === 'all') return true;
     if (filterIssue === 'unanalyzed') return !clip.isAnalyzed;
     if (!clip.isAnalyzed || !clip.segments) return false;
@@ -149,14 +265,19 @@ export function useClipAnalysis() {
   return {
     folderPath,
     clips: filteredClips,
+    rawClips: clips,
     rawClipsCount: clips.length,
     selectedClip,
     setSelectedClip,
     isScanning,
     analyzingClipPath,
     progressMap,
+    batchProgress,
     filterIssue,
     setFilterIssue,
+    selectedTag,
+    setSelectedTag,
+    availableTags,
     thresholds,
     setThresholds,
     activePreset,
@@ -165,6 +286,7 @@ export function useClipAnalysis() {
     handleRefreshFolder,
     handleAnalyzeClip,
     handleAnalyzeAll,
+    handleCancelBatch,
     isElectron
   };
 }

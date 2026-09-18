@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node test-analysis.js",
+    "test:features": "node test-extended-features.js",
     "dev": "vite",
     "build": "vite build",
     "start": "vite build && electron .",
@@ -16,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^13.0.3",
+    "chokidar": "^5.0.0",
     "ffmpeg-static": "^5.3.0",
     "lucide-react": "^1.47.0",
     "react": "^19.3.0",

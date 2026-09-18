@@ -47,7 +47,8 @@ export async function scanFolder(dirPath, options = { recursive: false }) {
               isAnalyzed: !!cached,
               duration: cached?.duration || null,
               stats: cached?.stats || null,
-              segments: cached?.segments || null
+              segments: cached?.segments || null,
+              tags: cached?.tags || []
             });
           } catch (err) {
             console.error(`Error processing file ${fullPath}:`, err);

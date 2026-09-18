@@ -96,7 +96,7 @@ export default function ClipCard({
       </div>
 
       {/* Info details */}
-      <div className="flex items-start justify-between gap-2 mb-1.5">
+      <div className="flex items-start justify-between gap-2 mb-1">
         <div className="min-w-0 flex-1">
           <div className="text-xs font-medium text-slate-200 truncate" title={clip.fileName}>
             {clip.fileName}
@@ -143,6 +143,31 @@ export default function ClipCard({
           )}
         </div>
       </div>
+
+      {/* Auto-Tags Pills */}
+      {clip.tags && clip.tags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1 my-1">
+          {clip.tags.map(tag => {
+            let tagStyle = 'bg-slate-800/80 text-slate-400 border-slate-700/60';
+            if (tag === 'clean') tagStyle = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+            else if (tag === 'overexposed') tagStyle = 'bg-orange-500/15 text-orange-400 border-orange-500/30';
+            else if (tag === 'underexposed') tagStyle = 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30';
+            else if (tag === 'cool-cast') tagStyle = 'bg-sky-500/15 text-sky-400 border-sky-500/30';
+            else if (tag === 'warm-cast') tagStyle = 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30';
+            else if (tag === 'magenta-cast') tagStyle = 'bg-pink-500/15 text-pink-400 border-pink-500/30';
+            else if (tag === 'green-cast') tagStyle = 'bg-lime-500/15 text-lime-400 border-lime-500/30';
+
+            return (
+              <span
+                key={tag}
+                className={`text-[9px] font-mono px-1.5 py-0.2 rounded border ${tagStyle}`}
+              >
+                #{tag}
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* Mini Color & Exposure Distribution Bar */}
       {clip.isAnalyzed && clip.segments && clip.segments.length > 0 && (
