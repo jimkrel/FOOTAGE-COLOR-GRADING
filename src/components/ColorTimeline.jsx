@@ -58,19 +58,41 @@ export default function ColorTimeline({
     return `${m}:${s < 10 ? '0' : ''}${s}.${ms}`;
   };
 
+  // Generate ruler tick marks (e.g. 5 intervals)
+  const tickCount = 5;
+  const tickMarks = Array.from({ length: tickCount + 1 }, (_, i) => {
+    const time = (duration / tickCount) * i;
+    const percent = (i / tickCount) * 100;
+    return { time, percent };
+  });
+
   return (
-    <div className="flex flex-col gap-2 select-none w-full bg-[#111726] p-3 rounded-lg border border-slate-800/80">
+    <div className="flex flex-col gap-1.5 select-none w-full bg-[#0d121f] p-3 rounded-lg border border-[#1c263c]">
       {/* Timeline Header Info */}
-      <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center justify-between text-xs pb-1">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-200 uppercase tracking-wider text-[11px]">
+          <span className="font-bold text-slate-200 uppercase tracking-wider text-[11px]">
             Timeline Phân Tích Màu Sắc
           </span>
-          <span className="text-slate-500">({segments.length} đoạn phân đoạn)</span>
+          <span className="text-[11px] text-slate-400 font-mono">({segments.length} đoạn phân đoạn)</span>
         </div>
-        <div className="font-mono text-xs text-cyan-400 font-semibold">
-          {formatTime(currentTime)} / {formatTime(duration)}
+        <div className="font-mono text-xs text-cyan-400 font-semibold bg-slate-950/80 px-2 py-0.5 rounded border border-slate-800">
+          {formatTime(currentTime)} <span className="text-slate-500">/</span> {formatTime(duration)}
         </div>
+      </div>
+
+      {/* Ruler ticks */}
+      <div className="relative w-full h-3 flex text-[9px] font-mono text-slate-500 select-none">
+        {tickMarks.map((tick, idx) => (
+          <div
+            key={idx}
+            className="absolute transform -translate-x-1/2 flex flex-col items-center"
+            style={{ left: `${tick.percent}%` }}
+          >
+            <div className="w-px h-1.5 bg-slate-700" />
+            <span>{formatTime(tick.time)}</span>
+          </div>
+        ))}
       </div>
 
       {/* Main Timeline Bar */}
@@ -79,7 +101,7 @@ export default function ColorTimeline({
         onClick={handleTimelineClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative w-full h-11 bg-slate-950 rounded-md overflow-hidden cursor-pointer border border-slate-800 flex"
+        className="relative w-full h-10 bg-slate-950 rounded-md overflow-hidden cursor-pointer border border-slate-800/80 flex shadow-inner"
       >
         {/* Segments */}
         {segments.map((seg, idx) => {
@@ -101,13 +123,13 @@ export default function ColorTimeline({
                 onSeek(seg.start);
                 if (onSelectSegment) onSelectSegment(seg);
               }}
-              className={`h-full relative group transition-opacity border-r border-black/20 ${
+              className={`h-full relative group transition-opacity border-r border-black/25 ${
                 isCurrentHover ? 'brightness-125' : 'hover:brightness-110'
               } ${isSelected ? 'ring-2 ring-white z-10' : ''}`}
             >
               {/* Segment Label for wide segments */}
-              {widthPercent > 8 && (
-                <span className="absolute left-1.5 top-1 text-[10px] font-medium text-black/75 truncate pointer-events-none drop-shadow-xs">
+              {widthPercent > 7 && (
+                <span className="absolute left-1.5 top-1 text-[10px] font-semibold text-black/80 truncate pointer-events-none drop-shadow-xs">
                   {seg.issueType === 'normal' ? 'Normal' : seg.label.split(' ')[0]}
                 </span>
               )}
@@ -117,10 +139,10 @@ export default function ColorTimeline({
 
         {/* Playhead Marker */}
         <div
-          className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg pointer-events-none z-20 transition-all duration-75"
+          className="absolute top-0 bottom-0 w-0.5 bg-white shadow-xl pointer-events-none z-20 transition-all duration-75"
           style={{ left: `${playheadPercent}%` }}
         >
-          <div className="w-2.5 h-2.5 bg-white rounded-full -ml-1 -top-1 absolute shadow-md border border-slate-900" />
+          <div className="w-2.5 h-2.5 bg-white rounded-full -ml-1 -top-0.5 absolute shadow-md border border-slate-950" />
         </div>
       </div>
 
@@ -135,7 +157,7 @@ export default function ColorTimeline({
 
           return (
             <div key={issueType} className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.bg }} />
+              <span className="w-2.5 h-2.5 rounded-xs shrink-0" style={{ backgroundColor: theme.bg }} />
               <span className="text-slate-300">{theme.label}</span>
               <span className="text-[10px] font-mono text-slate-500">
                 ({totalSec.toFixed(1)}s)
@@ -148,7 +170,7 @@ export default function ColorTimeline({
       {/* Floating Hover Tooltip */}
       {hoverSegment && (
         <div
-          className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-2 bg-slate-900/95 border border-slate-700 text-slate-100 rounded-lg p-2.5 shadow-xl backdrop-blur-md text-xs w-56"
+          className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-2 bg-slate-900/95 border border-slate-700 text-slate-100 rounded-lg p-2.5 shadow-2xl backdrop-blur-md text-xs w-56"
           style={{ left: `${hoverPos.x}px`, top: `${hoverPos.y}px` }}
         >
           <div className="flex items-center justify-between font-semibold border-b border-slate-800 pb-1 mb-1.5">

@@ -8,7 +8,8 @@ export default function ClipCard({
   onSelect,
   onAnalyze,
   isAnalyzing,
-  progress
+  progress,
+  viewMode = 'card'
 }) {
   const [thumbUrl, setThumbUrl] = useState(null);
 
@@ -40,6 +41,95 @@ export default function ClipCard({
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  // --- LIST ROW VIEW ---
+  if (viewMode === 'list') {
+    return (
+      <div
+        onClick={() => onSelect(clip)}
+        className={`group flex items-center justify-between gap-2.5 px-2.5 py-1.5 rounded-md cursor-pointer transition-all border select-none ${
+          isSelected
+            ? 'bg-cyan-950/40 border-cyan-500/70 text-white shadow-xs'
+            : 'bg-[#111726]/60 hover:bg-[#161f33] border-slate-800/60 hover:border-slate-700/80 text-slate-300'
+        }`}
+      >
+        {/* Left: Mini Thumbnail + Name + Duration */}
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="relative w-12 aspect-video bg-slate-950 rounded overflow-hidden flex items-center justify-center shrink-0 border border-slate-800/80">
+            {thumbUrl ? (
+              <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <Film size={12} className="text-slate-600" />
+            )}
+            {isAnalyzing && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                <RefreshCw size={10} className="animate-spin text-cyan-400" />
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-medium truncate text-slate-200" title={clip.fileName}>
+              {clip.fileName}
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+              <span>{formatDuration(clip.duration)}</span>
+              <span>•</span>
+              <span>{formatFileSize(clip.fileSize)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Center: Tags (first 2) */}
+        {clip.tags && clip.tags.length > 0 && (
+          <div className="hidden sm:flex items-center gap-1 shrink-0">
+            {clip.tags.slice(0, 2).map(tag => {
+              const theme = getTagTheme(tag);
+              return (
+                <span
+                  key={tag}
+                  className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${theme.badgeBg} ${theme.badgeText} ${theme.badgeBorder}`}
+                >
+                  #{tag}
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Right: Status / Issue % */}
+        <div className="flex items-center gap-2 shrink-0">
+          {clip.isAnalyzed ? (
+            <div className="flex items-center gap-1.5 text-right">
+              <span className={`text-[10px] font-mono font-semibold ${
+                clip.stats?.issuePercentage > 20 ? 'text-amber-400' : 'text-emerald-400'
+              }`}>
+                {clip.stats?.issuePercentage || 0}%
+              </span>
+              {clip.stats?.issuePercentage > 15 ? (
+                <AlertTriangle size={12} className="text-amber-400" />
+              ) : (
+                <CheckCircle2 size={12} className="text-emerald-400" />
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAnalyze(clip);
+              }}
+              disabled={isAnalyzing}
+              className="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 hover:bg-cyan-600 hover:text-white text-slate-300 border border-slate-700 transition flex items-center gap-1"
+            >
+              <Zap size={9} />
+              <span>Quét</span>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // --- CARD VIEW (Default) ---
   return (
     <div
       onClick={() => onSelect(clip)}
