@@ -24,14 +24,14 @@ export default function ColorInspector({
         className={`h-full bg-[#0d121f] border-l border-[#1c263c] flex flex-col select-none shrink-0 overflow-hidden ${className}`}
       >
         {/* Header */}
-        <div className="p-3 border-b border-[#1c263c] bg-[#0f1526]/80 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Activity size={14} className="text-cyan-400" />
-            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+        <div className="px-3 py-2.5 border-b border-[#1c263c] bg-[#0f1526]/80 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Activity size={14} className="text-cyan-400 shrink-0" />
+            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider truncate">
               Color Inspector
             </span>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-800">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-800 shrink-0 whitespace-nowrap">
             STANDBY
           </span>
         </div>
@@ -87,16 +87,16 @@ export default function ColorInspector({
       className={`h-full bg-[#0d121f] border-l border-[#1c263c] flex flex-col select-none shrink-0 overflow-hidden ${className}`}
     >
       {/* Inspector Header & Tab switcher */}
-      <div className="p-3 border-b border-[#1c263c] bg-[#0f1526]/80 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Activity size={14} className="text-cyan-400" />
-          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+      <div className="px-3 py-2.5 border-b border-[#1c263c] bg-[#0f1526]/80 flex items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <Activity size={14} className="text-cyan-400 shrink-0" />
+          <span className="text-xs font-bold text-slate-200 uppercase tracking-wider truncate">
             Color Inspector
           </span>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex items-center bg-slate-900/90 rounded-md p-0.5 border border-slate-800 text-[11px]">
+        <div className="flex items-center bg-slate-900/90 rounded-md p-0.5 border border-slate-800 text-[11px] shrink-0">
           <button
             onClick={() => setActiveTab('scopes')}
             className={`px-2 py-0.5 rounded transition font-medium ${

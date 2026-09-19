@@ -181,13 +181,13 @@ export default function ClipList({
       </div>
 
       {/* 3-State Scroll List: Loading / Error / Empty / Content */}
-      <div className={`flex-1 overflow-y-auto p-2.5 ${viewMode === 'list' ? 'space-y-1' : 'grid grid-cols-2 gap-2 content-start'}`}>
+      <div className="flex-1 overflow-y-auto min-h-0">
         {isScanning ? (
-          <div className="col-span-2">
+          <div className="h-full flex items-center justify-center p-4">
             <LoadingView message="Đang quét các file video trong thư mục..." />
           </div>
         ) : scanError ? (
-          <div className="col-span-2">
+          <div className="h-full flex items-center justify-center p-4">
             <ErrorView
               title="Lỗi đọc thư mục"
               message={scanError}
@@ -196,9 +196,9 @@ export default function ClipList({
           </div>
         ) : !hasClips ? (
           /* Trạng thái 1: Thư viện hoàn toàn trống (First-time empty state) */
-          <div className="col-span-2 h-full flex flex-col items-center justify-center p-4 text-center select-none">
-            <div className="w-full max-w-[240px] p-4 rounded-xl border border-dashed border-slate-800/80 bg-slate-900/40 flex flex-col items-center">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-2.5 shadow-inner">
+          <div className="h-full flex flex-col items-center justify-center p-4 text-center select-none">
+            <div className="w-full max-w-[220px] p-4 rounded-xl border border-dashed border-slate-700/60 bg-slate-900/40 flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center mb-2.5 shadow-inner">
                 <Film size={20} className="text-cyan-400/60" />
               </div>
               <div className="text-xs font-semibold text-slate-300">Thư viện trống</div>
@@ -226,8 +226,8 @@ export default function ClipList({
             </div>
           </div>
         ) : displayClips.length === 0 ? (
-          /* Trạng thái 2: Đã có video trong thư viện nhưng bị bộ lọc/tìm kiếm loại hết */
-          <div className="col-span-2 py-8 px-4 flex flex-col items-center text-center">
+          /* Trạng thái 2: Đã có video nhưng bị bộ lọc/tìm kiếm loại hết */
+          <div className="py-10 px-4 flex flex-col items-center text-center">
             <EmptyView
               icon={Filter}
               title="Không tìm thấy video phù hợp"
@@ -236,25 +236,28 @@ export default function ClipList({
             {hasActiveFilters && (
               <button
                 onClick={handleClearFilters}
-                className="mt-2 px-3 py-1.5 rounded-md bg-cyan-950/40 hover:bg-cyan-900/50 text-cyan-300 text-xs font-medium border border-cyan-800/50 transition cursor-pointer active:scale-95"
+                className="mt-3 px-3 py-1.5 rounded-md bg-cyan-950/40 hover:bg-cyan-900/50 text-cyan-300 text-xs font-medium border border-cyan-800/50 transition cursor-pointer active:scale-95"
               >
                 Xóa tất cả bộ lọc
               </button>
             )}
           </div>
         ) : (
-          displayClips.map((clip) => (
-            <ClipCard
-              key={clip.filePath}
-              clip={clip}
-              isSelected={selectedClip?.filePath === clip.filePath}
-              onSelect={onSelectClip}
-              onAnalyze={handleAnalyze}
-              isAnalyzing={analyzingClipPath === clip.filePath}
-              progress={progressMap[clip.filePath]}
-              viewMode={viewMode}
-            />
-          ))
+          /* Clips grid/list — grid only wraps actual cards */
+          <div className={`p-2.5 ${viewMode === 'list' ? 'space-y-1' : 'grid grid-cols-2 gap-2'}`}>
+            {displayClips.map((clip) => (
+              <ClipCard
+                key={clip.filePath}
+                clip={clip}
+                isSelected={selectedClip?.filePath === clip.filePath}
+                onSelect={onSelectClip}
+                onAnalyze={handleAnalyze}
+                isAnalyzing={analyzingClipPath === clip.filePath}
+                progress={progressMap[clip.filePath]}
+                viewMode={viewMode}
+              />
+            ))}
+          </div>
         )}
       </div>
 

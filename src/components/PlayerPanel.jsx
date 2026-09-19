@@ -124,9 +124,9 @@ export default function PlayerPanel({
         className="flex-1 relative bg-black flex items-center justify-center overflow-hidden group min-h-0"
       >
         {!selectedClip ? (
-          <div className="w-full h-full flex items-center justify-center p-6 select-none">
+          <div className="w-full h-full flex items-center justify-center p-8 select-none">
             {/* 16:9 Cinema Monitor Screen Frame */}
-            <div className="w-full max-w-xl aspect-video rounded-xl bg-gradient-to-b from-[#0d1424] to-[#060911] border border-[#1c263c] shadow-2xl relative flex flex-col items-center justify-center p-6 overflow-hidden group">
+            <div className="w-full max-w-[520px] aspect-video rounded-xl bg-gradient-to-b from-[#0d1424] to-[#060911] border border-[#1c263c] shadow-2xl relative flex flex-col items-center justify-center p-8 overflow-hidden">
               {/* Cinema Framing Guide Crosshairs in 4 corners */}
               <div className="absolute top-3 left-3 font-mono text-[10px] text-slate-600 select-none">┌ 16:9 DCI</div>
               <div className="absolute top-3 right-3 font-mono text-[10px] text-slate-600 select-none">┐</div>
@@ -140,13 +140,13 @@ export default function PlayerPanel({
               </div>
 
               {/* Title & guidance */}
-              <h3 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide mb-1 text-center">
+              <h3 className="text-sm font-bold text-slate-100 tracking-wide mb-1 text-center">
                 {clipsCount === 0 ? 'Kéo Thả Video Hoặc Thư Mục Vào Đây' : 'Chọn Một Clip Để Phát & Xem Màu'}
               </h3>
-              <p className="text-[11px] text-slate-400 max-w-md text-center mb-5 leading-relaxed">
+              <p className="text-[11px] text-slate-400 max-w-xs text-center mb-5 leading-relaxed">
                 {clipsCount === 0
-                  ? 'Hỗ trợ thẻ nhớ máy quay Sony, RED, BMPCC, Canon và 25+ định dạng video (.mp4, .mov, .mxf, .braw...)'
-                  : 'Nhấp vào clip ở danh sách bên trái để phát lại, xem timeline và biểu đồ Vectorscope.'}
+                  ? 'Hỗ trợ Sony, RED, BMPCC, Canon và 25+ định dạng (.mp4 .mov .mxf .braw...)'
+                  : 'Nhấp vào clip ở danh sách bên trái để phát lại và xem Vectorscope.'}
               </p>
 
               {/* Action buttons */}
