@@ -121,7 +121,7 @@ export default function ClipList({
                 placeholder="Tìm kiếm footage..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-7 py-1.5 bg-slate-950/70 border border-slate-800 focus:border-cyan-500/70 rounded-md text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition font-sans"
+                className="w-full pl-8 pr-7 py-1.5 bg-slate-950/70 border border-slate-800 focus:border-cyan-500/70 focus:ring-1 focus:ring-cyan-500/20 rounded-md text-xs text-slate-200 placeholder-slate-500 focus:outline-none transition font-sans"
               />
               {searchQuery && (
                 <button
@@ -181,18 +181,22 @@ export default function ClipList({
       </div>
 
       {/* 3-State Scroll List: Loading / Error / Empty / Content */}
-      <div className={`flex-1 overflow-y-auto p-2.5 ${viewMode === 'list' ? 'space-y-1' : 'space-y-2.5'}`}>
+      <div className={`flex-1 overflow-y-auto p-2.5 ${viewMode === 'list' ? 'space-y-1' : 'grid grid-cols-2 gap-2 content-start'}`}>
         {isScanning ? (
-          <LoadingView message="Đang quét các file video trong thư mục..." />
+          <div className="col-span-2">
+            <LoadingView message="Đang quét các file video trong thư mục..." />
+          </div>
         ) : scanError ? (
-          <ErrorView
-            title="Lỗi đọc thư mục"
-            message={scanError}
-            onRetry={onRefresh}
-          />
+          <div className="col-span-2">
+            <ErrorView
+              title="Lỗi đọc thư mục"
+              message={scanError}
+              onRetry={onRefresh}
+            />
+          </div>
         ) : !hasClips ? (
           /* Trạng thái 1: Thư viện hoàn toàn trống (First-time empty state) */
-          <div className="h-full flex flex-col items-center justify-center p-4 text-center select-none">
+          <div className="col-span-2 h-full flex flex-col items-center justify-center p-4 text-center select-none">
             <div className="w-full max-w-[240px] p-4 rounded-xl border border-dashed border-slate-800/80 bg-slate-900/40 flex flex-col items-center">
               <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-2.5 shadow-inner">
                 <Film size={20} className="text-cyan-400/60" />
@@ -223,7 +227,7 @@ export default function ClipList({
           </div>
         ) : displayClips.length === 0 ? (
           /* Trạng thái 2: Đã có video trong thư viện nhưng bị bộ lọc/tìm kiếm loại hết */
-          <div className="py-8 px-4 flex flex-col items-center text-center">
+          <div className="col-span-2 py-8 px-4 flex flex-col items-center text-center">
             <EmptyView
               icon={Filter}
               title="Không tìm thấy video phù hợp"

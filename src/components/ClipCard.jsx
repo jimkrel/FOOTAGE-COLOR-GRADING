@@ -81,7 +81,7 @@ export default function ClipCard({
 
         {/* Center: Tags (first 2) */}
         {clip.tags && clip.tags.length > 0 && (
-          <div className="hidden sm:flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1 shrink-0 max-w-[80px]">
             {clip.tags.slice(0, 2).map(tag => {
               const theme = getTagTheme(tag);
               return (
@@ -135,7 +135,7 @@ export default function ClipCard({
       onClick={() => onSelect(clip)}
       className={`group relative flex flex-col p-2.5 rounded-lg cursor-pointer transition-all border select-none ${
         isSelected
-          ? 'bg-slate-800/90 border-cyan-500/80 shadow-md shadow-cyan-500/10'
+          ? 'bg-slate-800/90 border-cyan-500/80 shadow-lg shadow-cyan-500/10'
           : 'bg-[#121827]/70 hover:bg-slate-800/50 border-slate-800/80 hover:border-slate-700'
       }`}
     >
@@ -145,7 +145,7 @@ export default function ClipCard({
           <img
             src={thumbUrl}
             alt={clip.fileName}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
           />
         ) : (
           <div className="flex flex-col items-center gap-1 text-slate-600">
@@ -167,7 +167,7 @@ export default function ClipCard({
             <div className="text-[11px] font-medium text-slate-200">Đang phân tích...</div>
             <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-200"
+                className="bg-gradient-to-r from-cyan-400 to-teal-400 h-full transition-all duration-200"
                 style={{ width: `${progress || 0}%` }}
               />
             </div>
@@ -242,7 +242,7 @@ export default function ClipCard({
             return (
               <span
                 key={tag}
-                className={`text-[9px] font-mono px-1.5 py-0.2 rounded border ${theme.badgeBg} ${theme.badgeText} ${theme.badgeBorder}`}
+                className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${theme.badgeBg} ${theme.badgeText} ${theme.badgeBorder}`}
               >
                 #{tag}
               </span>

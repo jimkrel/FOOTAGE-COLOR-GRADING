@@ -128,10 +128,10 @@ export default function PlayerPanel({
             {/* 16:9 Cinema Monitor Screen Frame */}
             <div className="w-full max-w-xl aspect-video rounded-xl bg-gradient-to-b from-[#0d1424] to-[#060911] border border-[#1c263c] shadow-2xl relative flex flex-col items-center justify-center p-6 overflow-hidden group">
               {/* Cinema Framing Guide Crosshairs in 4 corners */}
-              <div className="absolute top-3 left-3 font-mono text-[10px] text-slate-700 select-none">┌ 16:9 DCI</div>
-              <div className="absolute top-3 right-3 font-mono text-[10px] text-slate-700 select-none">┐</div>
-              <div className="absolute bottom-3 left-3 font-mono text-[10px] text-slate-700 select-none">└</div>
-              <div className="absolute bottom-3 right-3 font-mono text-[10px] text-slate-700 select-none">COLOR STUDIO ┘</div>
+              <div className="absolute top-3 left-3 font-mono text-[10px] text-slate-600 select-none">┌ 16:9 DCI</div>
+              <div className="absolute top-3 right-3 font-mono text-[10px] text-slate-600 select-none">┐</div>
+              <div className="absolute bottom-3 left-3 font-mono text-[10px] text-slate-600 select-none">└</div>
+              <div className="absolute bottom-3 right-3 font-mono text-[10px] text-slate-600 select-none">COLOR STUDIO ┘</div>
 
               {/* Center status badge */}
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-slate-800 text-[10px] font-mono text-cyan-400 mb-3">
@@ -259,7 +259,7 @@ export default function PlayerPanel({
           <button
             onClick={togglePlay}
             disabled={!videoSrc || !!playerError}
-            className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white flex items-center justify-center transition shadow-lg shadow-cyan-500/20 active:scale-95 disabled:opacity-30 cursor-pointer"
+            className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-white flex items-center justify-center transition shadow-lg shadow-cyan-500/25 active:scale-95 disabled:opacity-30 cursor-pointer"
             title="Phát/Tạm dừng (Phím Space)"
           >
             {isPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FolderOpen, RefreshCw, Sparkles, Sliders, Film } from 'lucide-react';
+import { FolderOpen, RefreshCw, Sparkles, Sliders, Film, Layers } from 'lucide-react';
 import ScanProgressBar from './ScanProgressBar.jsx';
 
 export default function FolderTree({
@@ -18,12 +18,12 @@ export default function FolderTree({
   const isBatchRunning = batchProgress?.isRunning;
 
   return (
-    <header className="h-13 border-b border-[#1c263c] bg-[#0d121f] px-3 sm:px-4 flex items-center justify-between gap-3 select-none shrink-0 z-30">
+    <header className="h-14 border-b border-[#1c263c] bg-[#0d121f] px-3 sm:px-4 flex items-center justify-between gap-3 select-none shrink-0 z-30">
       {/* Left: Brand Logo & Folder/File Selectors */}
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         <div className="flex items-center gap-2 font-bold text-slate-100 tracking-wide text-xs md:text-sm shrink-0">
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 to-teal-500 flex items-center justify-center text-white text-xs shadow-md shadow-cyan-500/20">
-            ▲
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 to-teal-500 flex items-center justify-center text-white shadow-md shadow-cyan-500/20">
+            <Layers size={13} />
           </div>
           <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-200 bg-clip-text text-transparent font-extrabold tracking-wider">
             FOOTAGE COLOR STUDIO
@@ -63,7 +63,7 @@ export default function FolderTree({
         )}
 
         {folderPath && (
-          <div className="hidden lg:flex items-center gap-2 min-w-0">
+          <div className="hidden md:flex items-center gap-2 min-w-0">
             <div className="text-xs text-slate-400 truncate max-w-xs bg-slate-950/60 px-2.5 py-1 rounded border border-slate-800/80 font-mono" title={folderPath}>
               {folderPath}
             </div>

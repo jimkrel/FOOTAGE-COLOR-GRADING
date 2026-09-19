@@ -119,7 +119,7 @@ export default function ColorTimeline({
         onClick={handleTimelineClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="relative w-full h-10 bg-slate-950 rounded-md overflow-hidden cursor-pointer border border-slate-800/80 flex shadow-inner"
+        className="relative w-full h-11 bg-slate-950 rounded-md overflow-hidden cursor-pointer border border-slate-800/80 flex shadow-inner"
       >
         {/* Segments */}
         {segments.map((seg, idx) => {
@@ -147,7 +147,7 @@ export default function ColorTimeline({
             >
               {/* Segment Label for wide segments */}
               {widthPercent > 7 && (
-                <span className="absolute left-1.5 top-1 text-[10px] font-semibold text-black/80 truncate pointer-events-none drop-shadow-xs">
+                <span className="absolute left-1.5 top-1 text-[10px] font-semibold text-white/90 truncate pointer-events-none drop-shadow">
                   {seg.issueType === 'normal' ? 'Normal' : seg.label.split(' ')[0]}
                 </span>
               )}

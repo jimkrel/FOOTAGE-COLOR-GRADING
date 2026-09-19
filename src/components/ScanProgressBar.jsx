@@ -29,7 +29,7 @@ export default function ScanProgressBar({
         </div>
         <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
           <div
-            className="bg-gradient-to-r from-cyan-400 to-blue-500 h-full transition-all duration-300"
+            className="bg-gradient-to-r from-cyan-400 to-teal-400 h-full transition-all duration-300"
             style={{ width: `${batchProgress.percent}%` }}
           />
         </div>
