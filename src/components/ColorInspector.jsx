@@ -21,13 +21,59 @@ export default function ColorInspector({
     return (
       <div
         style={style}
-        className={`h-full bg-[#0d121f] border-l border-[#1c263c] flex flex-col items-center justify-center p-6 text-center text-slate-500 select-none ${className}`}
+        className={`h-full bg-[#0d121f] border-l border-[#1c263c] flex flex-col select-none shrink-0 overflow-hidden ${className}`}
       >
-        <Activity size={32} className="text-slate-600 mb-2 opacity-60" />
-        <div className="text-xs font-semibold text-slate-400">Color Inspector</div>
-        <p className="text-[11px] text-slate-500 mt-1 max-w-[200px]">
-          Chọn một video từ danh sách để xem chi tiết Vectorscope và thông số quang phổ.
-        </p>
+        {/* Header */}
+        <div className="p-3 border-b border-[#1c263c] bg-[#0f1526]/80 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity size={14} className="text-cyan-400" />
+            <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              Color Inspector
+            </span>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-500 border border-slate-800">
+            STANDBY
+          </span>
+        </div>
+
+        {/* Body with standby Vectorscope and Scope Baseline */}
+        <div className="flex-1 p-3 flex flex-col gap-3 overflow-y-auto">
+          {/* Vectorscope Container */}
+          <div className="bg-[#0b0f19] border border-[#1c263c] rounded-xl p-3 flex flex-col items-center">
+            <div className="w-full flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold text-slate-300">Vectorscope Rec.709</span>
+              <span className="text-[10px] text-slate-500 font-mono">Chờ tín hiệu</span>
+            </div>
+            <VectorscopeMini
+              videoRef={null}
+              activeSegment={null}
+              isPlaying={false}
+              currentTime={0}
+            />
+          </div>
+
+          {/* Luma & Exposure Gauge Placeholder */}
+          <div className="bg-[#0b0f19] border border-[#1c263c] rounded-xl p-3 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-slate-300">Thang Đo Phơi Sáng (Luma Y)</span>
+              <span className="text-[10px] text-slate-500 font-mono">0 - 255</span>
+            </div>
+            <div className="h-3.5 bg-slate-900 rounded border border-slate-800 relative overflow-hidden">
+              <div className="absolute inset-y-0 left-[12%] right-[12%] bg-cyan-500/10 border-x border-cyan-500/30" title="Vùng an toàn (16-235)" />
+            </div>
+            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>0 (Black)</span>
+              <span className="text-cyan-400/70">Vùng an toàn</span>
+              <span>255 (Peak)</span>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800/60 text-center">
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Chọn hoặc phân tích một clip để xem chi tiết biểu đồ màu RGB và danh sách phân đoạn.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

@@ -16,8 +16,26 @@ export default function ColorTimeline({
 
   if (!duration || duration <= 0 || !segments || segments.length === 0) {
     return (
-      <div className="w-full h-20 bg-slate-900/50 border border-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-500">
-        Chưa có dữ liệu timeline (Cần phân tích video để xem phân bố phơi sáng và ám màu)
+      <div className="flex flex-col gap-1.5 select-none w-full bg-[#0d121f] p-3 rounded-lg border border-[#1c263c] h-full justify-between">
+        {/* Standby Header */}
+        <div className="flex items-center justify-between text-xs pb-1">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-300 uppercase tracking-wider text-[11px]">
+              Timeline Phân Tích Màu Sắc
+            </span>
+            <span className="text-[10px] text-slate-500 font-mono">STANDBY</span>
+          </div>
+          <div className="font-mono text-xs text-slate-500 bg-slate-950/80 px-2 py-0.5 rounded border border-slate-800">
+            00:00.0 <span className="text-slate-600">/</span> 00:00.0
+          </div>
+        </div>
+
+        {/* Empty Track with clean dashed border */}
+        <div className="relative w-full h-8 bg-[#0a0e1a] rounded border border-dashed border-slate-800/80 flex items-center justify-center">
+          <span className="text-[11px] text-slate-500 font-mono">
+            Chưa có dữ liệu phân đoạn màu • Chọn clip để kích hoạt timeline
+          </span>
+        </div>
       </div>
     );
   }

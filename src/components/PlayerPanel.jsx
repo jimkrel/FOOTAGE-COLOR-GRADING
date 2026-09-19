@@ -11,7 +11,8 @@ import {
   AlertCircle,
   SkipBack,
   SkipForward,
-  Sidebar
+  Sidebar,
+  FolderOpen
 } from 'lucide-react';
 import { getIssueTheme } from '../theme/tokens.js';
 import { EmptyView, ErrorView } from './common/StateView.jsx';
@@ -22,6 +23,8 @@ export default function PlayerPanel({
   isAnalyzing,
   player, // from usePlayer()
   onOpenFolder,
+  onOpenFiles,
+  clipsCount = 0,
   isInspectorOpen = true,
   onToggleInspector
 }) {
@@ -121,11 +124,57 @@ export default function PlayerPanel({
         className="flex-1 relative bg-black flex items-center justify-center overflow-hidden group min-h-0"
       >
         {!selectedClip ? (
-          <EmptyView
-            icon={Film}
-            title="Chưa chọn video"
-            description="Chọn một clip trong danh sách bên trái để phát và xem dòng thời gian timeline."
-          />
+          <div className="w-full h-full flex items-center justify-center p-6 select-none">
+            {/* 16:9 Cinema Monitor Screen Frame */}
+            <div className="w-full max-w-xl aspect-video rounded-xl bg-gradient-to-b from-[#0d1424] to-[#060911] border border-[#1c263c] shadow-2xl relative flex flex-col items-center justify-center p-6 overflow-hidden group">
+              {/* Cinema Framing Guide Crosshairs in 4 corners */}
+              <div className="absolute top-3 left-3 font-mono text-[10px] text-slate-700 select-none">┌ 16:9 DCI</div>
+              <div className="absolute top-3 right-3 font-mono text-[10px] text-slate-700 select-none">┐</div>
+              <div className="absolute bottom-3 left-3 font-mono text-[10px] text-slate-700 select-none">└</div>
+              <div className="absolute bottom-3 right-3 font-mono text-[10px] text-slate-700 select-none">COLOR STUDIO ┘</div>
+
+              {/* Center status badge */}
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 border border-slate-800 text-[10px] font-mono text-cyan-400 mb-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                <span>MONITOR STANDBY • SẴN SÀNG</span>
+              </div>
+
+              {/* Title & guidance */}
+              <h3 className="text-sm sm:text-base font-bold text-slate-100 tracking-wide mb-1 text-center">
+                {clipsCount === 0 ? 'Kéo Thả Video Hoặc Thư Mục Vào Đây' : 'Chọn Một Clip Để Phát & Xem Màu'}
+              </h3>
+              <p className="text-[11px] text-slate-400 max-w-md text-center mb-5 leading-relaxed">
+                {clipsCount === 0
+                  ? 'Hỗ trợ thẻ nhớ máy quay Sony, RED, BMPCC, Canon và 25+ định dạng video (.mp4, .mov, .mxf, .braw...)'
+                  : 'Nhấp vào clip ở danh sách bên trái để phát lại, xem timeline và biểu đồ Vectorscope.'}
+              </p>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-2.5">
+                {onOpenFolder && (
+                  <button
+                    onClick={onOpenFolder}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white text-xs font-semibold shadow-md shadow-cyan-500/20 transition active:scale-95 cursor-pointer"
+                  >
+                    <FolderOpen size={13} />
+                    <span>Chọn Thư Mục</span>
+                  </button>
+                )}
+                {onOpenFiles && (
+                  <button
+                    onClick={onOpenFiles}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition active:scale-95 cursor-pointer"
+                  >
+                    <Film size={13} className="text-cyan-400" />
+                    <span>Chọn File Video</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Subtle Spectrum Bar at bottom */}
+              <div className="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-teal-400 to-sky-500 opacity-30" />
+            </div>
+          </div>
         ) : playerError ? (
           <div className="flex flex-col items-center justify-center p-6 text-center max-w-md">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3">

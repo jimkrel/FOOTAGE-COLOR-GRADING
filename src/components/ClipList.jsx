@@ -20,6 +20,8 @@ export default function ClipList({
   isScanning = false,
   scanError = null,
   onRefresh,
+  onSelectFolder,
+  onSelectFiles,
   style = {},
   className = ''
 }) {
@@ -189,15 +191,35 @@ export default function ClipList({
             onRetry={onRefresh}
           />
         ) : !hasClips ? (
-          /* Trạng thái 1: Thư viện hoàn toàn trống (First-time empty state) - Thân thiện, êm dịu, không báo lỗi */
-          <div className="h-full flex flex-col items-center justify-center py-12 px-4 text-center select-none">
-            <div className="w-12 h-12 rounded-2xl bg-slate-900/70 border border-slate-800 flex items-center justify-center text-slate-600 mb-3 shadow-inner">
-              <Film size={22} className="opacity-60" />
+          /* Trạng thái 1: Thư viện hoàn toàn trống (First-time empty state) */
+          <div className="h-full flex flex-col items-center justify-center p-4 text-center select-none">
+            <div className="w-full max-w-[240px] p-4 rounded-xl border border-dashed border-slate-800/80 bg-slate-900/40 flex flex-col items-center">
+              <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-2.5 shadow-inner">
+                <Film size={20} className="text-cyan-400/60" />
+              </div>
+              <div className="text-xs font-semibold text-slate-300">Thư viện trống</div>
+              <p className="text-[11px] text-slate-500 mt-1 mb-3.5 leading-relaxed">
+                Kéo thả file video hoặc chọn từ máy tính
+              </p>
+              <div className="flex flex-col gap-1.5 w-full">
+                {onSelectFolder && (
+                  <button
+                    onClick={onSelectFolder}
+                    className="w-full py-1.5 px-3 rounded-md bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 text-xs font-medium transition active:scale-95 cursor-pointer"
+                  >
+                    Chọn Thư Mục
+                  </button>
+                )}
+                {onSelectFiles && (
+                  <button
+                    onClick={onSelectFiles}
+                    className="w-full py-1.5 px-3 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-medium transition active:scale-95 cursor-pointer"
+                  >
+                    Thêm File Video
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="text-xs font-medium text-slate-400">Chưa có footage nào</div>
-            <p className="text-[11px] text-slate-600 mt-1 max-w-[200px] leading-relaxed">
-              Mời chọn thư mục chứa video hoặc kéo thả trực tiếp file vào đây.
-            </p>
           </div>
         ) : displayClips.length === 0 ? (
           /* Trạng thái 2: Đã có video trong thư viện nhưng bị bộ lọc/tìm kiếm loại hết */
