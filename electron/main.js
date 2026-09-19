@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, protocol, net } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, protocol, net, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { scanFolder, importPaths, SUPPORTED_VIDEO_EXTENSIONS } from './ipc/scanFolder.js';
@@ -138,6 +138,13 @@ ipcMain.handle('files:select', async () => {
     return [];
   }
   return await importPaths(result.filePaths);
+});
+
+// IPC: Show item in Windows Explorer / Finder
+ipcMain.handle('shell:showItem', (_event, filePath) => {
+  if (!filePath) return false;
+  shell.showItemInFolder(filePath);
+  return true;
 });
 
 // IPC: Import arbitrary paths (e.g. from Drag & Drop)

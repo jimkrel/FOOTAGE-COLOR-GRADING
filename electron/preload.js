@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectFolder: () => ipcRenderer.invoke('folder:select'),
   selectFiles: () => ipcRenderer.invoke('files:select'),
   importPaths: (paths) => ipcRenderer.invoke('files:import', paths),
+  showItemInFolder: (filePath) => ipcRenderer.invoke('shell:showItem', filePath),
   getPathForFile: (file) => {
     try {
       return webUtils ? webUtils.getPathForFile(file) : file.path;
